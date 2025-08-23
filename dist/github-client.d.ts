@@ -20,6 +20,10 @@ export declare class GitHubClient {
      */
     updateRepositoryDescription(description: string): Promise<void>;
     /**
+     * Update repository homepage URL
+     */
+    updateRepositoryHomepage(homepageUrl: string): Promise<void>;
+    /**
      * Check if the current GitHub token has the necessary permissions
      */
     checkPermissions(): Promise<boolean>;

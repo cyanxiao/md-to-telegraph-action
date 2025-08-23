@@ -64,14 +64,14 @@ class MarkdownConverter {
         const cleanedHtml = this.removeFrontmatter(html);
         // Parse HTML and convert to Telegraph nodes using JSDOM
         const dom = new jsdom_1.JSDOM(`<div>${cleanedHtml}</div>`);
-        const container = dom.window.document.querySelector('div');
+        const container = dom.window.document.querySelector("div");
         if (container) {
             for (const child of Array.from(container.childNodes)) {
                 const node = this.convertHtmlNodeToTelegraphNode(child);
                 if (node) {
-                    if (typeof node === 'string') {
+                    if (typeof node === "string") {
                         // Wrap plain text in a paragraph node
-                        nodes.push({ tag: 'p', children: [node] });
+                        nodes.push({ tag: "p", children: [node] });
                     }
                     else {
                         nodes.push(node);
@@ -82,8 +82,8 @@ class MarkdownConverter {
         return nodes;
     }
     removeFrontmatter(content) {
-        if (content.startsWith('---')) {
-            const endIndex = content.indexOf('---', 3);
+        if (content.startsWith("---")) {
+            const endIndex = content.indexOf("---", 3);
             if (endIndex !== -1) {
                 return content.substring(endIndex + 3).trim();
             }
@@ -91,11 +91,13 @@ class MarkdownConverter {
         return content;
     }
     convertHtmlNodeToTelegraphNode(node) {
-        if (node.nodeType === 3) { // TEXT_NODE
+        if (node.nodeType === 3) {
+            // TEXT_NODE
             const text = node.textContent?.trim();
             return text ? text : null;
         }
-        if (node.nodeType === 1) { // ELEMENT_NODE
+        if (node.nodeType === 1) {
+            // ELEMENT_NODE
             const element = node;
             const tagName = element.tagName.toLowerCase();
             // Map HTML tags to Telegraph supported tags
@@ -107,10 +109,11 @@ class MarkdownConverter {
             const children = [];
             for (const child of Array.from(element.childNodes)) {
                 const convertedChild = this.convertHtmlNodeToTelegraphNode(child);
-                if (convertedChild !== null && typeof convertedChild === 'string') {
+                if (convertedChild !== null && typeof convertedChild === "string") {
                     children.push(convertedChild);
                 }
-                else if (convertedChild !== null && typeof convertedChild === 'object') {
+                else if (convertedChild !== null &&
+                    typeof convertedChild === "object") {
                     children.push(convertedChild);
                 }
             }
@@ -119,11 +122,11 @@ class MarkdownConverter {
                 children: children.length > 0 ? children : undefined,
             };
             // Add attributes for specific tags
-            if (tagName === 'a' && element.hasAttribute('href')) {
-                telegraphNode.attrs = { href: element.getAttribute('href') };
+            if (tagName === "a" && element.hasAttribute("href")) {
+                telegraphNode.attrs = { href: element.getAttribute("href") };
             }
-            else if (tagName === 'img' && element.hasAttribute('src')) {
-                telegraphNode.attrs = { src: element.getAttribute('src') };
+            else if (tagName === "img" && element.hasAttribute("src")) {
+                telegraphNode.attrs = { src: element.getAttribute("src") };
             }
             return telegraphNode;
         }
@@ -131,34 +134,34 @@ class MarkdownConverter {
     }
     mapHtmlTagToTelegraph(htmlTag) {
         const tagMap = {
-            'p': 'p',
-            'br': 'br',
-            'strong': 'strong',
-            'b': 'strong',
-            'em': 'em',
-            'i': 'em',
-            'u': 'u',
-            'del': 's',
-            's': 's',
-            'strike': 's',
-            'code': 'code',
-            'pre': 'pre',
-            'a': 'a',
-            'h1': 'h3', // Telegraph doesn't support h1, h2
-            'h2': 'h3',
-            'h3': 'h3',
-            'h4': 'h4',
-            'h5': 'h4',
-            'h6': 'h4',
-            'blockquote': 'blockquote',
-            'figure': 'figure',
-            'img': 'img',
-            'video': 'video',
-            'iframe': 'iframe',
-            'figcaption': 'figcaption',
-            'ul': 'ul',
-            'ol': 'ol',
-            'li': 'li',
+            p: "p",
+            br: "br",
+            strong: "strong",
+            b: "strong",
+            em: "em",
+            i: "em",
+            u: "u",
+            del: "s",
+            s: "s",
+            strike: "s",
+            code: "code",
+            pre: "pre",
+            a: "a",
+            h1: "h3", // Telegraph doesn't support h1, h2
+            h2: "h3",
+            h3: "h3",
+            h4: "h4",
+            h5: "h4",
+            h6: "h4",
+            blockquote: "blockquote",
+            figure: "figure",
+            img: "img",
+            video: "video",
+            iframe: "iframe",
+            figcaption: "figcaption",
+            ul: "ul",
+            ol: "ol",
+            li: "li",
         };
         return tagMap[htmlTag] || null;
     }
@@ -167,7 +170,7 @@ class MarkdownConverter {
         // Remove frontmatter
         const cleanedMarkdown = this.removeFrontmatter(markdown);
         const nodes = [];
-        const lines = cleanedMarkdown.split('\n');
+        const lines = cleanedMarkdown.split("\n");
         let skipFirstH1 = true; // Skip the first H1 since it's used as the page title
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
@@ -175,50 +178,50 @@ class MarkdownConverter {
                 continue;
             }
             // Handle headers
-            if (line.startsWith('#')) {
+            if (line.startsWith("#")) {
                 const level = line.match(/^#+/)?.[0].length || 1;
-                const text = line.replace(/^#+\s*/, '');
+                const text = line.replace(/^#+\s*/, "");
                 // Skip the first H1 header to avoid title duplication
                 if (level === 1 && skipFirstH1) {
                     skipFirstH1 = false;
                     continue;
                 }
-                const tag = level <= 2 ? 'h3' : 'h4';
+                const tag = level <= 2 ? "h3" : "h4";
                 nodes.push({ tag, children: [text] });
                 continue;
             }
             // Handle code blocks
-            if (line.startsWith('```')) {
+            if (line.startsWith("```")) {
                 const codeLines = [];
                 i++; // Skip opening ```
-                while (i < lines.length && !lines[i].trim().startsWith('```')) {
+                while (i < lines.length && !lines[i].trim().startsWith("```")) {
                     codeLines.push(lines[i]);
                     i++;
                 }
                 if (codeLines.length > 0) {
-                    nodes.push({ tag: 'pre', children: [codeLines.join('\n')] });
+                    nodes.push({ tag: "pre", children: [codeLines.join("\n")] });
                 }
                 continue;
             }
             // Handle blockquotes
-            if (line.startsWith('>')) {
-                const text = line.replace(/^>\s*/, '');
-                nodes.push({ tag: 'blockquote', children: [text] });
+            if (line.startsWith(">")) {
+                const text = line.replace(/^>\s*/, "");
+                nodes.push({ tag: "blockquote", children: [text] });
                 continue;
             }
             // Regular paragraph
             const processedNodes = this.processInlineMarkdownToNodes(line, basePath, linkResolver);
             if (processedNodes.length > 0) {
-                nodes.push({ tag: 'p', children: processedNodes });
+                nodes.push({ tag: "p", children: processedNodes });
             }
         }
         return nodes;
     }
     processInlineMarkdown(text, basePath, linkResolver) {
         let processedText = text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code>$1</code>');
+            .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+            .replace(/\*(.*?)\*/g, "<em>$1</em>")
+            .replace(/`(.*?)`/g, "<code>$1</code>");
         // Handle links with potential internal markdown resolution
         processedText = processedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, linkText, href) => {
             const resolvedHref = this.resolveLink(href, basePath, linkResolver);
@@ -231,10 +234,10 @@ class MarkdownConverter {
         let currentIndex = 0;
         // Define regex patterns for different markdown elements
         const patterns = [
-            { regex: /\*\*(.*?)\*\*/g, tag: 'strong' },
-            { regex: /\*(.*?)\*/g, tag: 'em' },
-            { regex: /`(.*?)`/g, tag: 'code' },
-            { regex: /\[([^\]]+)\]\(([^)]+)\)/g, tag: 'a' }
+            { regex: /\*\*(.*?)\*\*/g, tag: "strong" },
+            { regex: /\*(.*?)\*/g, tag: "em" },
+            { regex: /`(.*?)`/g, tag: "code" },
+            { regex: /\[([^\]]+)\]\(([^)]+)\)/g, tag: "a" },
         ];
         // Find all matches and their positions
         const matches = [];
@@ -242,7 +245,7 @@ class MarkdownConverter {
             pattern.regex.lastIndex = 0; // Reset regex
             let match;
             while ((match = pattern.regex.exec(text)) !== null) {
-                if (pattern.tag === 'a') {
+                if (pattern.tag === "a") {
                     // Special handling for links
                     const linkText = match[1];
                     const href = match[2];
@@ -252,7 +255,7 @@ class MarkdownConverter {
                         end: match.index + match[0].length,
                         text: linkText,
                         tag: pattern.tag,
-                        href: resolvedHref
+                        href: resolvedHref,
                     });
                 }
                 else {
@@ -260,7 +263,7 @@ class MarkdownConverter {
                         start: match.index,
                         end: match.index + match[0].length,
                         text: match[1],
-                        tag: pattern.tag
+                        tag: pattern.tag,
                     });
                 }
             }
@@ -288,7 +291,7 @@ class MarkdownConverter {
             // Add the matched element as a node
             const node = {
                 tag: match.tag,
-                children: [match.text]
+                children: [match.text],
             };
             if (match.href) {
                 node.attrs = { href: match.href };
@@ -311,25 +314,27 @@ class MarkdownConverter {
     }
     resolveLink(href, basePath, linkResolver) {
         // Skip external URLs (http/https)
-        if (href.startsWith('http://') || href.startsWith('https://')) {
+        if (href.startsWith("http://") || href.startsWith("https://")) {
             return href;
         }
         // Skip anchors, mailto, etc.
-        if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+        if (href.startsWith("#") ||
+            href.startsWith("mailto:") ||
+            href.startsWith("tel:")) {
             return href;
         }
         // Handle internal markdown links
-        if (href.includes('.md') && basePath && linkResolver) {
+        if (href.includes(".md") && basePath && linkResolver) {
             // Extract just the path part, ignoring query parameters and anchors
-            let pathPart = href.split('?')[0].split('#')[0];
+            let pathPart = href.split("?")[0].split("#")[0];
             let resolvedPath;
-            if (pathPart.startsWith('./') || pathPart.startsWith('../')) {
+            if (pathPart.startsWith("./") || pathPart.startsWith("../")) {
                 // Relative path
                 resolvedPath = path.resolve(path.dirname(basePath), pathPart);
                 // Convert absolute path back to relative from workspace root
                 resolvedPath = path.relative(process.cwd(), resolvedPath);
             }
-            else if (pathPart.startsWith('/')) {
+            else if (pathPart.startsWith("/")) {
                 // Absolute path from repo root
                 resolvedPath = pathPart.substring(1);
             }
@@ -338,7 +343,7 @@ class MarkdownConverter {
                 resolvedPath = path.join(path.dirname(basePath), pathPart);
             }
             // Normalize path separators for consistent lookup
-            resolvedPath = resolvedPath.replace(/\\/g, '/');
+            resolvedPath = resolvedPath.replace(/\\/g, "/");
             const telegraphUrl = linkResolver(resolvedPath);
             if (telegraphUrl && telegraphUrl !== resolvedPath) {
                 return telegraphUrl;

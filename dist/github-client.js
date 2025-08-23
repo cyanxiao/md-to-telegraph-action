@@ -93,6 +93,25 @@ class GitHubClient {
         }
     }
     /**
+     * Update repository homepage URL
+     */
+    async updateRepositoryHomepage(homepageUrl) {
+        try {
+            const { owner, repo } = this.getCurrentRepository();
+            core.info(`Updating repository homepage URL to: ${homepageUrl}`);
+            await this.octokit.rest.repos.update({
+                owner,
+                repo,
+                homepage: homepageUrl,
+            });
+            core.info(`✅ Repository homepage URL updated successfully`);
+        }
+        catch (error) {
+            core.error(`Failed to update repository homepage URL: ${error}`);
+            throw error;
+        }
+    }
+    /**
      * Check if the current GitHub token has the necessary permissions
      */
     async checkPermissions() {

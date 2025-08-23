@@ -1,4 +1,4 @@
-import { Node } from './telegraph';
+import { Node } from "./telegraph";
 export declare class MarkdownConverter {
     constructor();
     private setupRenderer;
