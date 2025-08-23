@@ -221,6 +221,7 @@ class MarkdownConverter {
         let processedText = text
             .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
             .replace(/\*(.*?)\*/g, "<em>$1</em>")
+            .replace(/_(.*?)_/g, "<em>$1</em>")
             .replace(/`(.*?)`/g, "<code>$1</code>");
         // Handle links with potential internal markdown resolution
         processedText = processedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, linkText, href) => {
@@ -236,6 +237,7 @@ class MarkdownConverter {
         const patterns = [
             { regex: /\*\*(.*?)\*\*/g, tag: "strong" },
             { regex: /\*(.*?)\*/g, tag: "em" },
+            { regex: /_(.*?)_/g, tag: "em" },
             { regex: /`(.*?)`/g, tag: "code" },
             { regex: /\[([^\]]+)\]\(([^)]+)\)/g, tag: "a" },
         ];
