@@ -185,6 +185,47 @@ describe("GitHubClient", () => {
     });
   });
 
+  describe("updateRepositoryHomepage", () => {
+    beforeEach(() => {
+      client = new GitHubClient();
+    });
+
+    it("should update repository homepage URL successfully", async () => {
+      const homepageUrl = "https://telegra.ph/My-Page-123";
+
+      mockOctokit.rest.repos.update.mockResolvedValue({});
+
+      await client.updateRepositoryHomepage(homepageUrl);
+
+      expect(mockOctokit.rest.repos.update).toHaveBeenCalledWith({
+        owner: "test-owner",
+        repo: "test-repo",
+        homepage: homepageUrl,
+      });
+
+      expect(core.info).toHaveBeenCalledWith(
+        `Updating repository homepage URL to: ${homepageUrl}`
+      );
+      expect(core.info).toHaveBeenCalledWith(
+        "✅ Repository homepage URL updated successfully"
+      );
+    });
+
+    it("should handle update errors", async () => {
+      const homepageUrl = "https://telegra.ph/My-Page-123";
+      const error = new Error("Insufficient permissions");
+
+      mockOctokit.rest.repos.update.mockRejectedValue(error);
+
+      await expect(
+        client.updateRepositoryHomepage(homepageUrl)
+      ).rejects.toThrow("Insufficient permissions");
+      expect(core.error).toHaveBeenCalledWith(
+        "Failed to update repository homepage URL: Error: Insufficient permissions"
+      );
+    });
+  });
+
   describe("checkPermissions", () => {
     beforeEach(() => {
       client = new GitHubClient();

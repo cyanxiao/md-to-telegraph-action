@@ -186,7 +186,7 @@ export async function run(): Promise<void> {
     if (config.oneEntryMode && newMappings.length === 1) {
       try {
         core.info(
-          "One entry mode enabled and exactly one page created. Updating repository description..."
+          "One entry mode enabled and exactly one page created. Updating repository homepage URL..."
         );
 
         const githubClient = new GitHubClient();
@@ -194,26 +194,24 @@ export async function run(): Promise<void> {
 
         if (hasPermissions) {
           const singlePage = newMappings[0];
-          await githubClient.updateRepositoryDescription(
-            singlePage.telegraphUrl
-          );
+          await githubClient.updateRepositoryHomepage(singlePage.telegraphUrl);
           core.info(
-            `✅ Repository description updated with Telegraph URL: ${singlePage.telegraphUrl}`
+            `✅ Repository homepage URL updated with Telegraph URL: ${singlePage.telegraphUrl}`
           );
         } else {
           core.warning(
-            "GitHub token does not have sufficient permissions to update repository description. Please ensure the token has 'metadata: write' or 'contents: write' permissions."
+            "GitHub token does not have sufficient permissions to update repository homepage URL. Please ensure the token has 'metadata: write' or 'contents: write' permissions."
           );
         }
       } catch (error) {
         core.warning(
-          `Failed to update repository description in one entry mode: ${error}`
+          `Failed to update repository homepage URL in one entry mode: ${error}`
         );
         // Don't fail the entire action for this feature
       }
     } else if (config.oneEntryMode && newMappings.length !== 1) {
       core.info(
-        `One entry mode enabled but ${newMappings.length} pages were created. Repository description will not be updated.`
+        `One entry mode enabled but ${newMappings.length} pages were created. Repository homepage URL will not be updated.`
       );
     }
 

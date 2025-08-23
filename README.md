@@ -12,7 +12,7 @@ A GitHub Action that automatically converts markdown files in your repository to
 - 📋 Maintains a mapping file of all created pages
 - ⚙️ Configurable file patterns for inclusion/exclusion
 - 🎯 Uses existing Telegraph account or creates a new one
-- 🔀 **One Entry Mode**: Automatically updates repository description with Telegraph URL when only one page is created
+- 🔀 **One Entry Mode**: Automatically updates repository homepage URL with Telegraph URL when only one page is created
 - 🔄 **Page Replacement**: Reuse existing Telegraph pages instead of creating new ones (maintains same URLs)
 
 ## Usage
@@ -88,17 +88,17 @@ jobs:
 
 ## Inputs
 
-| Input                    | Description                                                 | Required | Default                  |
-| ------------------------ | ----------------------------------------------------------- | -------- | ------------------------ |
-| `account-name`           | Telegraph account short name                                | No       | `'GitHub Action'`        |
-| `author-name`            | Author name for Telegraph pages                             | No       | `'GitHub Action'`        |
-| `author-url`             | Author URL for Telegraph pages                              | No       | -                        |
-| `include-patterns`       | Comma-separated glob patterns for files to include          | No       | `'**/*.md'`              |
-| `exclude-patterns`       | Comma-separated glob patterns for files to exclude          | No       | `'node_modules/**'`      |
-| `output-file`            | Output file to store page mappings                          | No       | `'telegraph-pages.json'` |
-| `telegraph-token`        | Existing Telegraph access token                             | No       | -                        |
-| `one-entry-mode`         | Update repository description when only one page is created | No       | `'false'`                |
-| `replace-existing-pages` | Reuse existing Telegraph pages instead of creating new ones | No       | `'false'`                |
+| Input                    | Description                                                  | Required | Default                  |
+| ------------------------ | ------------------------------------------------------------ | -------- | ------------------------ |
+| `account-name`           | Telegraph account short name                                 | No       | `'GitHub Action'`        |
+| `author-name`            | Author name for Telegraph pages                              | No       | `'GitHub Action'`        |
+| `author-url`             | Author URL for Telegraph pages                               | No       | -                        |
+| `include-patterns`       | Comma-separated glob patterns for files to include           | No       | `'**/*.md'`              |
+| `exclude-patterns`       | Comma-separated glob patterns for files to exclude           | No       | `'node_modules/**'`      |
+| `output-file`            | Output file to store page mappings                           | No       | `'telegraph-pages.json'` |
+| `telegraph-token`        | Existing Telegraph access token                              | No       | -                        |
+| `one-entry-mode`         | Update repository homepage URL when only one page is created | No       | `'false'`                |
+| `replace-existing-pages` | Reuse existing Telegraph pages instead of creating new ones  | No       | `'false'`                |
 
 ## Outputs
 
@@ -109,13 +109,13 @@ jobs:
 
 ## One Entry Mode
 
-When enabled with `one-entry-mode: "true"`, this feature automatically updates your repository description with the Telegraph URL when exactly one markdown file is processed. This is perfect for single-page documentation repositories, personal profiles, or project showcases.
+When enabled with `one-entry-mode: "true"`, this feature automatically updates your repository homepage URL with the Telegraph URL when exactly one markdown file is processed. This is perfect for single-page documentation repositories, personal profiles, or project showcases.
 
 ### How One Entry Mode Works
 
 1. **Enable the feature**: Set `one-entry-mode: "true"` in your workflow
 2. **Single page detection**: When exactly one markdown file is processed, the action detects this scenario
-3. **Repository update**: The GitHub repository description is automatically updated with the Telegraph page URL
+3. **Repository update**: The GitHub repository homepage URL is automatically updated with the Telegraph page URL
 4. **Permission handling**: Gracefully handles cases where the GitHub token lacks repository write permissions
 
 ### One Entry Mode Example
@@ -140,11 +140,11 @@ When enabled with `one-entry-mode: "true"`, this feature automatically updates y
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-**Result**: If only `README.md` is processed, your repository description will be automatically updated to point to the Telegraph page (e.g., `https://telegra.ph/My-Profile-12-15`).
+**Result**: If only `README.md` is processed, your repository homepage URL will be automatically updated to point to the Telegraph page (e.g., `https://telegra.ph/My-Profile-12-15`).
 
 ### One Entry Mode Requirements
 
-- **GITHUB_TOKEN**: Must be provided via `env` for repository description updates
+- **GITHUB_TOKEN**: Must be provided via `env` for repository homepage updates
 - The GitHub token must have `metadata: write` or `contents: write` permissions
 - If permissions are insufficient, the action will show a warning but continue successfully
 - Only works when exactly one markdown file is processed
