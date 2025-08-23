@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Convert markdown to Telegraph
-        uses: cyanxiao/md-to-telegraph-action
+        uses: cyanxiao/md-to-telegraph-action@release
         with:
           account-name: "My Docs Site"
           author-name: "Documentation Team"
