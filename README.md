@@ -2,7 +2,9 @@
 
 This README itself is a demo for this action. The [Project GitHub Repo](https://github.com/cyanxiao/md-to-telegraph-action) is in sync with the [Telegraph Page](https://telegra.ph/Markdown-to-Telegraph-Action-08-23).
 
-A GitHub Action that automatically converts markdown files in your repository to pages on [Telegraph](https://telegra.ph/). It is a convenient way to host your documentation on [Telegraph](https://telegra.ph/).
+`md-to-telegraph-action` is a GitHub action that automatically converts markdown files in your repository to pages on [Telegraph](https://telegra.ph/). It is a convenient way to host your documentation on [Telegraph](https://telegra.ph/) without the hassle of setting up a server.
+
+Check it out in Marketplace: [Markdown to Telegraph Action](https://github.com/marketplace/actions/markdown-to-telegraph)
 
 ## Features
 
