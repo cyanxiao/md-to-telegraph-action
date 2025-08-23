@@ -34,6 +34,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Telegraph mappings
+        uses: actions/cache@v3
+        with:
+          path: telegraph-pages.json
+          key: telegraph-mappings-${{ hashFiles('docs/**/*.md', 'README.md') }}
+          restore-keys: |
+            telegraph-mappings-
+
       - name: Convert markdown to Telegraph
         uses: cyanxiao/md-to-telegraph-action@release
         with:
@@ -54,6 +62,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Telegraph mappings
+        uses: actions/cache@v3
+        with:
+          path: my-telegraph-pages.json
+          key: telegraph-mappings-${{ hashFiles('docs/**/*.md', 'guides/**/*.md', 'README.md') }}
+          restore-keys: |
+            telegraph-mappings-
+
       - name: Convert markdown to Telegraph
         uses: cyanxiao/md-to-telegraph-action@release
         with:
@@ -68,14 +84,6 @@ jobs:
           replace-existing-pages: "true"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit updated mappings
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add my-telegraph-pages.json
-          git diff --staged --quiet || git commit -m "Update Telegraph page mappings"
-          git push
 ```
 
 ## Inputs
@@ -103,16 +111,24 @@ jobs:
 
 When enabled with `one-entry-mode: "true"`, this feature automatically updates your repository description with the Telegraph URL when exactly one markdown file is processed. This is perfect for single-page documentation repositories, personal profiles, or project showcases.
 
-### How it works
+### How One Entry Mode Works
 
 1. **Enable the feature**: Set `one-entry-mode: "true"` in your workflow
 2. **Single page detection**: When exactly one markdown file is processed, the action detects this scenario
 3. **Repository update**: The GitHub repository description is automatically updated with the Telegraph page URL
 4. **Permission handling**: Gracefully handles cases where the GitHub token lacks repository write permissions
 
-### Example
+### One Entry Mode Example
 
 ```yaml
+- name: Cache Telegraph mappings
+  uses: actions/cache@v3
+  with:
+    path: telegraph-pages.json
+    key: telegraph-mappings-${{ hashFiles('README.md') }}
+    restore-keys: |
+      telegraph-mappings-
+
 - name: Convert README to Telegraph
   uses: cyanxiao/md-to-telegraph-action@release
   with:
@@ -126,7 +142,7 @@ When enabled with `one-entry-mode: "true"`, this feature automatically updates y
 
 **Result**: If only `README.md` is processed, your repository description will be automatically updated to point to the Telegraph page (e.g., `https://telegra.ph/My-Profile-12-15`).
 
-### Requirements
+### One Entry Mode Requirements
 
 - **GITHUB_TOKEN**: Must be provided via `env` for repository description updates
 - The GitHub token must have `metadata: write` or `contents: write` permissions
@@ -137,7 +153,7 @@ When enabled with `one-entry-mode: "true"`, this feature automatically updates y
 
 When enabled with `replace-existing-pages: "true"`, this feature prevents the creation of duplicate Telegraph pages by reusing existing pages with the same title. This is perfect for documentation that gets updated regularly, as it maintains consistent URLs for bookmarks and external links.
 
-### How it works
+### How Page Replacement Works
 
 1. **Enable the feature**: Set `replace-existing-pages: "true"` in your workflow
 2. **Provide consistent token**: A `telegraph-token` is **required** for this feature to work
@@ -145,9 +161,17 @@ When enabled with `replace-existing-pages: "true"`, this feature prevents the cr
 4. **Content replacement**: If a match is found, the existing page content is replaced
 5. **URL preservation**: The Telegraph page URL remains the same (e.g., `https://telegra.ph/My-Guide-12-15`)
 
-### Example
+### Page Replacement Example
 
 ```yaml
+- name: Cache Telegraph mappings
+  uses: actions/cache@v3
+  with:
+    path: telegraph-pages.json
+    key: telegraph-mappings-${{ hashFiles('docs/**/*.md') }}
+    restore-keys: |
+      telegraph-mappings-
+
 - name: Update Documentation
   uses: cyanxiao/md-to-telegraph-action@release
   with:
@@ -162,7 +186,7 @@ When enabled with `replace-existing-pages: "true"`, this feature prevents the cr
 
 **Result**: Each time the action runs, it will update the existing Telegraph pages instead of creating new ones, preserving URLs and preventing duplicates.
 
-### Requirements
+### Page Replacement Requirements
 
 - **Telegraph token is mandatory**: This feature requires a consistent `telegraph-token` to access your existing pages
 - **Title-based matching**: Pages are matched by title (case-insensitive)
@@ -227,6 +251,58 @@ The action creates a JSON file (default: `telegraph-pages.json`) that maps your 
   }
 ]
 ```
+
+### Caching Strategy
+
+**⚠️ Important**: The mapping file should **not** be committed to your repository as it can cause git conflicts in CI/CD workflows. Instead, use GitHub Actions cache to persist the mapping file between workflow runs.
+
+#### Recommended Setup with GitHub Actions Cache
+
+Using cache provides several benefits:
+
+- ✅ **Avoids git conflicts** - No need to commit mapping files
+- ✅ **Faster builds** - Skips unchanged files on subsequent runs
+- ✅ **Preserves functionality** - Internal links and page replacement still work
+- ✅ **Automatic cleanup** - Old cache entries expire automatically
+
+The cache key should include a hash of your markdown files to ensure the cache is invalidated when content changes:
+
+```yaml
+- name: Cache Telegraph mappings
+  uses: actions/cache@v3
+  with:
+    path: telegraph-pages.json # or your custom output-file
+    key: telegraph-mappings-${{ hashFiles('**/*.md') }}
+    restore-keys: |
+      telegraph-mappings-
+```
+
+#### Alternative Storage Options
+
+If you can't use GitHub Actions cache, consider these alternatives:
+
+1. **Temporary directory** (loses incremental update benefits):
+
+   ```yaml
+   with:
+     output-file: "/tmp/telegraph-pages.json"
+   ```
+
+2. **Artifacts** (for cross-job persistence):
+
+   ```yaml
+   - name: Upload mappings
+     uses: actions/upload-artifact@v3
+     with:
+       name: telegraph-mappings
+       path: telegraph-pages.json
+   ```
+
+3. **Add to .gitignore** (if you don't mind the file in workspace):
+
+   ```gitignore
+   telegraph-pages.json
+   ```
 
 ## Markdown Support
 

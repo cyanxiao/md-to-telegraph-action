@@ -19,6 +19,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Cache Telegraph mappings
+        uses: actions/cache@v3
+        with:
+          path: telegraph-pages.json
+          key: telegraph-mappings-${{ hashFiles('docs/**/*.md', 'README.md') }}
+          restore-keys: |
+            telegraph-mappings-
+
       - name: Convert markdown to Telegraph
         uses: cyanxiao/md-to-telegraph-action@release
         with:
@@ -33,11 +41,3 @@ jobs:
           replace-existing-pages: "true"
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_LINK_TOKEN }}
-
-      - name: Commit updated mappings
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add telegraph-pages.json
-          git diff --staged --quiet || git commit -m "Update Telegraph page mappings"
-          git push
