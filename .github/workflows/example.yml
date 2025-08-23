@@ -27,8 +27,8 @@ jobs:
       - name: Convert markdown to Telegraph
         uses: cyanxiao/md-to-telegraph-action@release
         with:
-          account-name: "My Docs Site"
-          author-name: "Documentation Team"
+          account-name: "md-to-telegraph-action"
+          author-name: "Cyan Xiao"
           telegraph-token: "${{ secrets.TELEGRAPH_TOKEN }}"
           author-url: "https://github.com/${{ github.repository }}"
           include-patterns: "docs/**/*.md,README.md"
