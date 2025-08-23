@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Convert markdown to Telegraph
-        uses: cyanxiao/md-to-telegraph-action@v1
+        uses: cyanxiao/md-to-telegraph-action
         with:
           account-name: "My Docs Site"
           author-name: "Documentation Team"
@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Convert markdown to Telegraph
-        uses: cyanxiao/md-to-telegraph-action@v1
+        uses: cyanxiao/md-to-telegraph-action
         with:
           account-name: "My Project Docs"
           author-name: "Author"
@@ -110,7 +110,7 @@ When enabled with `one-entry-mode: "true"`, this feature automatically updates y
 
 ```yaml
 - name: Convert README to Telegraph
-  uses: cyanxiao/md-to-telegraph-action@v1
+  uses: cyanxiao/md-to-telegraph-action
   with:
     account-name: "My Profile"
     author-name: "Your Name"
@@ -142,7 +142,7 @@ When enabled with `replace-existing-pages: "true"`, this feature prevents the cr
 
 ```yaml
 - name: Update Documentation
-  uses: cyanxiao/md-to-telegraph-action@v1
+  uses: cyanxiao/md-to-telegraph-action
   with:
     account-name: "Project Docs"
     author-name: "Documentation Team"

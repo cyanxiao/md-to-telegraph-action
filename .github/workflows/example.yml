@@ -1,0 +1,39 @@
+name: Convert Docs to Telegraph
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**/*.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  convert-to-telegraph:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Convert markdown to Telegraph
+        uses: cyanxiao/md-to-telegraph-action
+        with:
+          account-name: "My Docs Site"
+          author-name: "Documentation Team"
+          telegraph-token: "${{ secrets.TELEGRAPH_TOKEN }}"
+          author-url: "https://github.com/${{ github.repository }}"
+          include-patterns: "docs/**/*.md,README.md"
+          exclude-patterns: "node_modules/**,dist/**"
+          output-file: "telegraph-pages.json"
+          one-entry-mode: "true"
+          replace-existing-pages: "true"
+
+      - name: Commit updated mappings
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add telegraph-pages.json
+          git diff --staged --quiet || git commit -m "Update Telegraph page mappings"
+          git push
