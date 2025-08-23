@@ -1,6 +1,6 @@
 {
   "name": "md-to-telegraph-action",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "GitHub Action to convert markdown files to Telegraph pages",
   "main": "dist/index.js",
   "scripts": {
