@@ -58,15 +58,23 @@ jobs:
           MAJOR_VERSION=${{ steps.get_version.outputs.major_version }}
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git tag -fa $MAJOR_VERSION -m "Update $MAJOR_VERSION tag"
-          git push origin $MAJOR_VERSION --force
+          # Delete existing tag if it exists
+          git tag -d $MAJOR_VERSION || true
+          git push origin :refs/tags/$MAJOR_VERSION || true
+          # Create new tag
+          git tag -a $MAJOR_VERSION -m "Update $MAJOR_VERSION tag"
+          git push origin $MAJOR_VERSION
 
       - name: Update release branch
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # Delete existing release branch if it exists
+          git push origin :release || true
+          git branch -D release || true
+          # Create new release branch
           git checkout -B release
-          git push origin release --force
+          git push origin release
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
