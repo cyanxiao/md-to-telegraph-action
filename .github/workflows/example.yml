@@ -3,6 +3,9 @@ name: Convert Docs to Telegraph
 on:
   push:
     branches: [main]
+    paths:
+      - "docs/**/*.md"
+      - "README.md"
   workflow_dispatch:
 
 permissions:

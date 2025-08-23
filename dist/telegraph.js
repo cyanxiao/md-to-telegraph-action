@@ -42,13 +42,13 @@ const core = __importStar(require("@actions/core"));
 class TelegraphClient {
     constructor() {
         this.api = axios_1.default.create({
-            baseURL: 'https://api.telegra.ph',
+            baseURL: "https://api.telegra.ph",
             timeout: 30000,
         });
     }
     async createAccount(shortName, authorName, authorUrl) {
         try {
-            const response = await this.api.post('/createAccount', {
+            const response = await this.api.post("/createAccount", {
                 short_name: shortName,
                 author_name: authorName,
                 author_url: authorUrl,
@@ -67,10 +67,10 @@ class TelegraphClient {
     }
     async createPage(title, content, authorName, authorUrl, returnContent = false) {
         if (!this.accessToken) {
-            throw new Error('No access token available. Create an account first.');
+            throw new Error("No access token available. Create an account first.");
         }
         try {
-            const response = await this.api.post('/createPage', {
+            const response = await this.api.post("/createPage", {
                 access_token: this.accessToken,
                 title,
                 author_name: authorName,
@@ -92,10 +92,10 @@ class TelegraphClient {
     }
     async editPage(path, title, content, authorName, authorUrl, returnContent = false) {
         if (!this.accessToken) {
-            throw new Error('No access token available. Create an account first.');
+            throw new Error("No access token available. Create an account first.");
         }
         try {
-            const response = await this.api.post('/editPage/' + path, {
+            const response = await this.api.post("/editPage/" + path, {
                 access_token: this.accessToken,
                 title,
                 author_name: authorName,
@@ -129,7 +129,7 @@ class TelegraphClient {
         }
         catch (error) {
             if (axios_1.default.isAxiosError(error) && error.response?.status === 404) {
-                throw new Error('Telegraph page not found');
+                throw new Error("Telegraph page not found");
             }
             core.error(`Failed to get Telegraph page: ${error}`);
             throw error;
@@ -137,10 +137,10 @@ class TelegraphClient {
     }
     async getPageList(offset = 0, limit = 50) {
         if (!this.accessToken) {
-            throw new Error('No access token available. Create an account first.');
+            throw new Error("No access token available. Create an account first.");
         }
         try {
-            const response = await this.api.get('/getPageList', {
+            const response = await this.api.get("/getPageList", {
                 params: {
                     access_token: this.accessToken,
                     offset,
@@ -161,7 +161,8 @@ class TelegraphClient {
         try {
             const pageList = await this.getPageList();
             // Look for a page with matching title
-            const existingPage = pageList.pages.find(page => page.title === title || page.title.toLowerCase() === title.toLowerCase());
+            const existingPage = pageList.pages.find((page) => page.title === title ||
+                page.title.toLowerCase() === title.toLowerCase());
             return existingPage || null;
         }
         catch (error) {

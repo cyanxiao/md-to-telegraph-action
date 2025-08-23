@@ -9,5 +9,6 @@ export declare class MarkdownConverter {
     private mapHtmlTagToTelegraph;
     convertToTelegraphNodesSimple(markdown: string, basePath?: string, linkResolver?: (link: string) => string): Node[];
     private processInlineMarkdown;
+    private processInlineMarkdownToNodes;
     private resolveLink;
 }

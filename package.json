@@ -8,8 +8,12 @@
     "package": "ncc build src/index.ts -o dist --source-map --license licenses.txt",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts"
+    "format": "prettier --write src/**/*.ts",
+    "prepare-release": "yarn build && yarn package && git add dist/",
+    "release": "yarn prepare-release && yarn test",
+    "check-dist": "yarn package && git diff --exit-code dist/"
   },
+  "packageManager": "yarn@1.22.19",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cyanxiao/md-to-telegraph-action.git"

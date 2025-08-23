@@ -168,6 +168,7 @@ class MarkdownConverter {
         const cleanedMarkdown = this.removeFrontmatter(markdown);
         const nodes = [];
         const lines = cleanedMarkdown.split('\n');
+        let skipFirstH1 = true; // Skip the first H1 since it's used as the page title
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             if (!line) {
@@ -177,6 +178,11 @@ class MarkdownConverter {
             if (line.startsWith('#')) {
                 const level = line.match(/^#+/)?.[0].length || 1;
                 const text = line.replace(/^#+\s*/, '');
+                // Skip the first H1 header to avoid title duplication
+                if (level === 1 && skipFirstH1) {
+                    skipFirstH1 = false;
+                    continue;
+                }
                 const tag = level <= 2 ? 'h3' : 'h4';
                 nodes.push({ tag, children: [text] });
                 continue;
@@ -201,9 +207,9 @@ class MarkdownConverter {
                 continue;
             }
             // Regular paragraph
-            const processedLine = this.processInlineMarkdown(line, basePath, linkResolver);
-            if (processedLine) {
-                nodes.push({ tag: 'p', children: [processedLine] });
+            const processedNodes = this.processInlineMarkdownToNodes(line, basePath, linkResolver);
+            if (processedNodes.length > 0) {
+                nodes.push({ tag: 'p', children: processedNodes });
             }
         }
         return nodes;
@@ -219,6 +225,89 @@ class MarkdownConverter {
             return `<a href="${resolvedHref}">${linkText}</a>`;
         });
         return processedText;
+    }
+    processInlineMarkdownToNodes(text, basePath, linkResolver) {
+        const nodes = [];
+        let currentIndex = 0;
+        // Define regex patterns for different markdown elements
+        const patterns = [
+            { regex: /\*\*(.*?)\*\*/g, tag: 'strong' },
+            { regex: /\*(.*?)\*/g, tag: 'em' },
+            { regex: /`(.*?)`/g, tag: 'code' },
+            { regex: /\[([^\]]+)\]\(([^)]+)\)/g, tag: 'a' }
+        ];
+        // Find all matches and their positions
+        const matches = [];
+        for (const pattern of patterns) {
+            pattern.regex.lastIndex = 0; // Reset regex
+            let match;
+            while ((match = pattern.regex.exec(text)) !== null) {
+                if (pattern.tag === 'a') {
+                    // Special handling for links
+                    const linkText = match[1];
+                    const href = match[2];
+                    const resolvedHref = this.resolveLink(href, basePath, linkResolver);
+                    matches.push({
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        text: linkText,
+                        tag: pattern.tag,
+                        href: resolvedHref
+                    });
+                }
+                else {
+                    matches.push({
+                        start: match.index,
+                        end: match.index + match[0].length,
+                        text: match[1],
+                        tag: pattern.tag
+                    });
+                }
+            }
+        }
+        // Sort matches by start position
+        matches.sort((a, b) => a.start - b.start);
+        // Remove overlapping matches (keep the first one)
+        const filteredMatches = [];
+        let lastEnd = -1;
+        for (const match of matches) {
+            if (match.start >= lastEnd) {
+                filteredMatches.push(match);
+                lastEnd = match.end;
+            }
+        }
+        // Build nodes array
+        for (const match of filteredMatches) {
+            // Add any text before this match
+            if (currentIndex < match.start) {
+                const beforeText = text.substring(currentIndex, match.start);
+                if (beforeText.trim()) {
+                    nodes.push(beforeText);
+                }
+            }
+            // Add the matched element as a node
+            const node = {
+                tag: match.tag,
+                children: [match.text]
+            };
+            if (match.href) {
+                node.attrs = { href: match.href };
+            }
+            nodes.push(node);
+            currentIndex = match.end;
+        }
+        // Add any remaining text
+        if (currentIndex < text.length) {
+            const remainingText = text.substring(currentIndex);
+            if (remainingText.trim()) {
+                nodes.push(remainingText);
+            }
+        }
+        // If no matches were found, return the original text
+        if (nodes.length === 0 && text.trim()) {
+            return [text];
+        }
+        return nodes;
     }
     resolveLink(href, basePath, linkResolver) {
         // Skip external URLs (http/https)
