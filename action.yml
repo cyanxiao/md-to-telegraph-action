@@ -1,0 +1,53 @@
+name: "Markdown to Telegraph"
+description: "Convert markdown files to Telegraph pages"
+author: "Cyan Xiao"
+
+inputs:
+  account-name:
+    description: "Telegraph account short name"
+    required: false
+    default: "GitHub Action"
+  author-name:
+    description: "Author name for Telegraph pages"
+    required: false
+    default: "GitHub Action"
+  author-url:
+    description: "Author URL for Telegraph pages"
+    required: false
+  include-patterns:
+    description: "Comma-separated glob patterns for markdown files to include"
+    required: false
+    default: "**/*.md"
+  exclude-patterns:
+    description: "Comma-separated glob patterns for files to exclude"
+    required: false
+    default: "node_modules/**"
+  output-file:
+    description: "Output file to store page mappings"
+    required: false
+    default: "telegraph-pages.json"
+  telegraph-token:
+    description: "Existing Telegraph access token (optional, will create new account if not provided)"
+    required: false
+  one-entry-mode:
+    description: "When enabled and only one markdown file is processed, update the repository description with the Telegraph URL"
+    required: false
+    default: "false"
+  replace-existing-pages:
+    description: "When enabled, reuse existing Telegraph pages instead of creating new ones (requires consistent telegraph-token)"
+    required: false
+    default: "false"
+
+outputs:
+  pages-created:
+    description: "Number of Telegraph pages created/updated"
+  mapping-file:
+    description: "Path to the file containing page mappings"
+
+runs:
+  using: "node20"
+  main: "dist/index.js"
+
+branding:
+  icon: "file-text"
+  color: "blue"
