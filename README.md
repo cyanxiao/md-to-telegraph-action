@@ -427,7 +427,7 @@ This project follows semantic versioning and uses automated release workflows.
 
 The automated release process:
 
-1. **CI/CD Pipeline**: All PRs are automatically tested with Node.js 18 and 20
+1. **CI/CD Pipeline**: All PRs are automatically tested with Node.js 20
 2. **Release Trigger**: Push a version tag (e.g., `v1.2.0`) to trigger the release
 3. **Automated Tasks**:
    - Runs full test suite

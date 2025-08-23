@@ -146,6 +146,22 @@ describe("MarkdownConverter", () => {
       expect(children).toContain(".");
     });
 
+    it("should convert underscore italic formatting", () => {
+      const markdown = "This text has _underscored italic_ formatting.";
+
+      const result = converter.convertToTelegraphNodesSimple(markdown);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].tag).toBe("p");
+      const children = result[0].children as Array<any>;
+      expect(children).toContain("This text has ");
+      expect(children).toContainEqual({
+        tag: "em",
+        children: ["underscored italic"],
+      });
+      expect(children).toContain(" formatting.");
+    });
+
     it("should convert links", () => {
       const markdown = "Check out [Google](https://google.com) for search.";
 
@@ -211,8 +227,16 @@ describe("MarkdownConverter", () => {
       expect(result).toBe("This is <strong>bold</strong> text");
     });
 
-    it("should process italic text", () => {
+    it("should process italic text with asterisks", () => {
       const text = "This is *italic* text";
+
+      const result = (converter as any).processInlineMarkdown(text);
+
+      expect(result).toBe("This is <em>italic</em> text");
+    });
+
+    it("should process italic text with underscores", () => {
+      const text = "This is _italic_ text";
 
       const result = (converter as any).processInlineMarkdown(text);
 
@@ -245,6 +269,16 @@ describe("MarkdownConverter", () => {
 
       expect(result).toBe(
         '<strong>Bold</strong> and <em>italic</em> with <code>code</code> and <a href="https://example.com">link</a>'
+      );
+    });
+
+    it("should process both asterisk and underscore italics", () => {
+      const text = "Both *asterisk italic* and _underscore italic_ work";
+
+      const result = (converter as any).processInlineMarkdown(text);
+
+      expect(result).toBe(
+        "Both <em>asterisk italic</em> and <em>underscore italic</em> work"
       );
     });
 
