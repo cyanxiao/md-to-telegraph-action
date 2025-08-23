@@ -28,6 +28,8 @@ jobs:
           output-file: "telegraph-pages.json"
           one-entry-mode: "true"
           replace-existing-pages: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit updated mappings
         run: |

@@ -35,11 +35,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Convert markdown to Telegraph
-        uses: cyanxiao/md-to-telegraph-action@release
+        uses: YOUR_USERNAME/md-to-telegraph-action@v1
         with:
           account-name: "My Docs Site"
           author-name: "Documentation Team"
           include-patterns: "docs/**/*.md,README.md"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### Advanced Example
@@ -53,7 +55,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Convert markdown to Telegraph
-        uses: cyanxiao/md-to-telegraph-action@release
+        uses: YOUR_USERNAME/md-to-telegraph-action@v1
         with:
           account-name: "My Project Docs"
           author-name: "Author"
@@ -64,6 +66,8 @@ jobs:
           telegraph-token: ${{ secrets.TELEGRAPH_TOKEN }}
           one-entry-mode: "true"
           replace-existing-pages: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit updated mappings
         run: |
@@ -110,18 +114,21 @@ When enabled with `one-entry-mode: "true"`, this feature automatically updates y
 
 ```yaml
 - name: Convert README to Telegraph
-  uses: cyanxiao/md-to-telegraph-action@release
+  uses: YOUR_USERNAME/md-to-telegraph-action@v1
   with:
     account-name: "My Profile"
     author-name: "Your Name"
     include-patterns: "README.md"
     one-entry-mode: "true"
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **Result**: If only `README.md` is processed, your repository description will be automatically updated to point to the Telegraph page (e.g., `https://telegra.ph/My-Profile-12-15`).
 
 ### Requirements
 
+- **GITHUB_TOKEN**: Must be provided via `env` for repository description updates
 - The GitHub token must have `metadata: write` or `contents: write` permissions
 - If permissions are insufficient, the action will show a warning but continue successfully
 - Only works when exactly one markdown file is processed
@@ -142,13 +149,15 @@ When enabled with `replace-existing-pages: "true"`, this feature prevents the cr
 
 ```yaml
 - name: Update Documentation
-  uses: cyanxiao/md-to-telegraph-action@release
+  uses: YOUR_USERNAME/md-to-telegraph-action@v1
   with:
     account-name: "Project Docs"
     author-name: "Documentation Team"
     telegraph-token: ${{ secrets.TELEGRAPH_TOKEN }}
     include-patterns: "docs/**/*.md"
     replace-existing-pages: "true"
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 **Result**: Each time the action runs, it will update the existing Telegraph pages instead of creating new ones, preserving URLs and preventing duplicates.
