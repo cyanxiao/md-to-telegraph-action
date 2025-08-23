@@ -88,24 +88,57 @@ jobs:
 
 ## Inputs
 
-| Input                    | Description                                                  | Required | Default                  |
-| ------------------------ | ------------------------------------------------------------ | -------- | ------------------------ |
-| `account-name`           | Telegraph account short name                                 | No       | `'GitHub Action'`        |
-| `author-name`            | Author name for Telegraph pages                              | No       | `'GitHub Action'`        |
-| `author-url`             | Author URL for Telegraph pages                               | No       | -                        |
-| `include-patterns`       | Comma-separated glob patterns for files to include           | No       | `'**/*.md'`              |
-| `exclude-patterns`       | Comma-separated glob patterns for files to exclude           | No       | `'node_modules/**'`      |
-| `output-file`            | Output file to store page mappings                           | No       | `'telegraph-pages.json'` |
-| `telegraph-token`        | Existing Telegraph access token                              | No       | -                        |
-| `one-entry-mode`         | Update repository homepage URL when only one page is created | No       | `'false'`                |
-| `replace-existing-pages` | Reuse existing Telegraph pages instead of creating new ones  | No       | `'false'`                |
+**Inputs:**
+
+- **`account-name`**  
+  _Telegraph account short name_  
+  Required: No  
+  Default: `'GitHub Action'`
+
+- **`author-name`**  
+  _Author name for Telegraph pages_  
+  Required: No  
+  Default: `'GitHub Action'`
+
+- **`author-url`**  
+  _Author URL for Telegraph pages_  
+  Required: No  
+  Default: _none_
+
+- **`include-patterns`**  
+  _Comma-separated glob patterns for files to include_  
+  Required: No  
+  Default: `'**/*.md'`
+
+- **`exclude-patterns`**  
+  _Comma-separated glob patterns for files to exclude_  
+  Required: No  
+  Default: `'node_modules/**'`
+
+- **`output-file`**  
+  _Output file to store page mappings_  
+  Required: No  
+  Default: `'telegraph-pages.json'`
+
+- **`telegraph-token`**  
+  _Existing Telegraph access token_  
+  Required: No  
+  Default: _none_
+
+- **`one-entry-mode`**  
+  _Update repository homepage URL when only one page is created_  
+  Required: No  
+  Default: `'false'`
+
+- **`replace-existing-pages`**  
+  _Reuse existing Telegraph pages instead of creating new ones_  
+  Required: No  
+  Default: `'false'`
 
 ## Outputs
 
-| Output          | Description                               |
-| --------------- | ----------------------------------------- |
-| `pages-created` | Number of Telegraph pages created/updated |
-| `mapping-file`  | Path to the file containing page mappings |
+- **`pages-created`**: Number of Telegraph pages created/updated
+- **`mapping-file`**: Path to the file containing page mappings
 
 ## One Entry Mode
 
