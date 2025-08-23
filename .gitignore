@@ -56,9 +56,6 @@ coverage/
 ehthumbs.db
 Thumbs.db
 
-# Telegraph pages mapping (if you want to track it, remove this line)
-telegraph-pages.json
-
 # Ignore agent rules
 .claude/
 .cursor/
