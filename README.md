@@ -52,6 +52,6 @@ jobs:
 
 For detailed usage instructions, configuration options, and advanced features, see:
 
-- **[Usage Guide](docs/usage-guide.md)** - Complete configuration examples and input/output reference
-- **[Features](docs/features.md)** - Detailed documentation for One Entry Mode, Page Replacement, and Internal Link Resolution
-- **[Development](docs/development.md)** - Setup, testing, and contribution guidelines
+- [Usage Guide](docs/usage-guide.md) - Complete configuration examples and input/output reference
+- [Features](docs/features.md) - Detailed documentation for One Entry Mode, Page Replacement, and Internal Link Resolution
+- [Development](docs/development.md) - Setup, testing, and contribution guidelines
