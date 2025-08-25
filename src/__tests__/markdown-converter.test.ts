@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { MarkdownConverter } from "../markdown-converter";
 import { marked } from "marked";
-import { JSDOM } from "jsdom";
+import { DOMParser } from "linkedom";
 
 // Mock the marked function with setOptions method
 const mockMarked = mock(() => "") as any;
@@ -10,8 +10,8 @@ mockMarked.setOptions = mock(() => {});
 mock.module("marked", () => ({
   marked: mockMarked,
 }));
-mock.module("jsdom", () => ({
-  JSDOM: mock(() => ({})),
+mock.module("linkedom", () => ({
+  DOMParser: mock(() => ({})),
 }));
 mock.module("@actions/core", () => ({
   info: mock(() => {}),
@@ -75,8 +75,8 @@ describe("MarkdownConverter", () => {
         }),
       };
 
-      (JSDOM as any).mockImplementation(
-        () => ({ window: { document: mockDocument } }) as any
+      (DOMParser as any).mockImplementation(
+        () => ({ parseFromString: () => mockDocument }) as any
       );
 
       const result = converter.convertToTelegraphNodes(markdown);
