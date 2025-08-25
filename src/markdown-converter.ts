@@ -225,22 +225,27 @@ export class MarkdownConverter {
     basePath?: string,
     linkResolver?: (link: string) => string
   ): string {
-    let processedText = text
-      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.*?)\*/g, "<em>$1</em>")
-      .replace(/_(.*?)_/g, "<em>$1</em>")
-      .replace(/`(.*?)`/g, "<code>$1</code>");
+    // Convert nodes back to HTML for this method
+    const nodes = this.parseMarkdownRecursively(text, basePath, linkResolver);
+    return this.nodesToHtml(nodes);
+  }
 
-    // Handle links with potential internal markdown resolution
-    processedText = processedText.replace(
-      /\[([^\]]+)\]\(([^)]+)\)/g,
-      (_, linkText, href) => {
-        const resolvedHref = this.resolveLink(href, basePath, linkResolver);
-        return `<a href="${resolvedHref}">${linkText}</a>`;
-      }
-    );
-
-    return processedText;
+  private nodesToHtml(nodes: Array<Node | string>): string {
+    return nodes
+      .map((node) => {
+        if (typeof node === "string") {
+          return node;
+        } else {
+          const children = this.nodesToHtml(
+            node.children as Array<Node | string>
+          );
+          if (node.attrs?.href) {
+            return `<${node.tag} href="${node.attrs.href}">${children}</${node.tag}>`;
+          }
+          return `<${node.tag}>${children}</${node.tag}>`;
+        }
+      })
+      .join("");
   }
 
   private processInlineMarkdownToNodes(
@@ -248,28 +253,50 @@ export class MarkdownConverter {
     basePath?: string,
     linkResolver?: (link: string) => string
   ): Array<Node | string> {
+    return this.parseMarkdownRecursively(text, basePath, linkResolver);
+  }
+
+  private parseMarkdownRecursively(
+    text: string,
+    basePath?: string,
+    linkResolver?: (link: string) => string
+  ): Array<Node | string> {
     const nodes: Array<Node | string> = [];
     let currentIndex = 0;
 
-    // Define regex patterns for different markdown elements
+    // Define regex patterns for different markdown elements in order of precedence
+    // Code blocks should be processed first to avoid interference with other patterns
     const patterns = [
-      { regex: /\*\*(.*?)\*\*/g, tag: "strong" },
-      { regex: /\*(.*?)\*/g, tag: "em" },
-      { regex: /_(.*?)_/g, tag: "em" },
-      { regex: /`(.*?)`/g, tag: "code" },
-      { regex: /\[([^\]]+)\]\(([^)]+)\)/g, tag: "a" },
+      { regex: /`([^`]+)`/g, tag: "code", priority: 1 },
+      { regex: /\*\*(.*?)\*\*/g, tag: "strong", priority: 2 },
+      { regex: /\*(.*?)\*/g, tag: "em", priority: 3 },
+      { regex: /_(.*?)_/g, tag: "em", priority: 3 },
+      { regex: /\[([^\]]+)\]\(([^)]+)\)/g, tag: "a", priority: 4 },
     ];
 
-    // Find all matches and their positions
-    const matches: Array<{
+    // Find the earliest match
+    let earliestMatch: {
       start: number;
       end: number;
       text: string;
       tag: string;
       href?: string;
+      innerContent?: string;
+    } | null = null;
+
+    // Find all matches and pick the best one by position and priority
+    const allMatches: Array<{
+      start: number;
+      end: number;
+      text: string;
+      tag: string;
+      href?: string;
+      innerContent?: string;
+      priority: number;
     }> = [];
 
-    for (const pattern of patterns) {
+    for (let i = 0; i < patterns.length; i++) {
+      const pattern = patterns[i];
       pattern.regex.lastIndex = 0; // Reset regex
       let match;
       while ((match = pattern.regex.exec(text)) !== null) {
@@ -278,72 +305,92 @@ export class MarkdownConverter {
           const linkText = match[1];
           const href = match[2];
           const resolvedHref = this.resolveLink(href, basePath, linkResolver);
-          matches.push({
+          allMatches.push({
             start: match.index,
             end: match.index + match[0].length,
             text: linkText,
             tag: pattern.tag,
             href: resolvedHref,
+            innerContent: linkText,
+            priority: i,
           });
         } else {
-          matches.push({
+          allMatches.push({
             start: match.index,
             end: match.index + match[0].length,
             text: match[1],
             tag: pattern.tag,
+            innerContent: match[1],
+            priority: i,
           });
         }
       }
     }
 
-    // Sort matches by start position
-    matches.sort((a, b) => a.start - b.start);
+    // Sort by start position, then by priority (earlier patterns win)
+    allMatches.sort((a, b) => {
+      if (a.start !== b.start) return a.start - b.start;
+      return a.priority - b.priority;
+    });
 
-    // Remove overlapping matches (keep the first one)
-    const filteredMatches = [];
-    let lastEnd = -1;
-    for (const match of matches) {
-      if (match.start >= lastEnd) {
-        filteredMatches.push(match);
-        lastEnd = match.end;
-      }
+    // Find the first valid match (earliest position with highest priority)
+    if (allMatches.length > 0) {
+      earliestMatch = allMatches[0];
     }
 
-    // Build nodes array
-    for (const match of filteredMatches) {
+    if (earliestMatch) {
       // Add any text before this match
-      if (currentIndex < match.start) {
-        const beforeText = text.substring(currentIndex, match.start);
+      if (currentIndex < earliestMatch.start) {
+        const beforeText = text.substring(currentIndex, earliestMatch.start);
         if (beforeText.trim()) {
           nodes.push(beforeText);
         }
       }
 
-      // Add the matched element as a node
+      // Process the inner content recursively for nested formatting
+      let children: Array<Node | string>;
+      if (earliestMatch.tag === "code") {
+        // Code should not have nested formatting
+        children = [earliestMatch.text];
+      } else {
+        // Recursively process the inner content
+        children = this.parseMarkdownRecursively(
+          earliestMatch.innerContent!,
+          basePath,
+          linkResolver
+        );
+        // If no nested formatting found, use the original text
+        if (children.length === 0) {
+          children = [earliestMatch.text];
+        }
+      }
+
       const node: Node = {
-        tag: match.tag,
-        children: [match.text],
+        tag: earliestMatch.tag,
+        children: children,
       };
 
-      if (match.href) {
-        node.attrs = { href: match.href };
+      if (earliestMatch.href) {
+        node.attrs = { href: earliestMatch.href };
       }
 
       nodes.push(node);
-      currentIndex = match.end;
-    }
 
-    // Add any remaining text
-    if (currentIndex < text.length) {
-      const remainingText = text.substring(currentIndex);
-      if (remainingText.trim()) {
-        nodes.push(remainingText);
+      // Process the remaining text after this match
+      const remainingText = text.substring(earliestMatch.end);
+      if (remainingText) {
+        const remainingNodes = this.parseMarkdownRecursively(
+          remainingText,
+          basePath,
+          linkResolver
+        );
+        nodes.push(...remainingNodes);
       }
-    }
-
-    // If no matches were found, return the original text
-    if (nodes.length === 0 && text.trim()) {
-      return [text];
+    } else {
+      // No matches found, return the text as-is
+      if (text.trim()) {
+        nodes.push(text);
+      }
     }
 
     return nodes;
