@@ -110,5 +110,5 @@ We welcome contributions to improve the action! Please follow these guidelines:
 
 - Unit tests for individual functions and classes
 - Integration tests for end-to-end workflows
-- Mock external dependencies (GitHub API, Telegraph API)
+- Mock external dependencies (GitHub API and Telegraph API)
 - Test both success and error scenarios
