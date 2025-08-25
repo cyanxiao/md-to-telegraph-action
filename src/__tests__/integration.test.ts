@@ -1,27 +1,32 @@
+import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { getConfig, loadPageMappings, savePageMappings } from "../utils";
 import * as core from "@actions/core";
 import * as fs from "fs";
 
-jest.mock("@actions/core", () => ({
-  info: jest.fn(),
-  warning: jest.fn(),
-  error: jest.fn(),
-  setFailed: jest.fn(),
-  getInput: jest.fn(),
-  setOutput: jest.fn(),
+mock.module("@actions/core", () => ({
+  info: mock(() => {}),
+  warning: mock(() => {}),
+  error: mock(() => {}),
+  setFailed: mock(() => {}),
+  getInput: mock(() => {}),
+  setOutput: mock(() => {}),
 }));
-jest.mock("fs");
+mock.module("fs", () => ({
+  readFileSync: mock(() => "{}"),
+  writeFileSync: mock(() => {}),
+  existsSync: mock(() => true),
+}));
 
-const mockedCore = core as jest.Mocked<typeof core>;
-const mockedFs = fs as jest.Mocked<typeof fs>;
+const mockedCore = core as any;
+const mockedFs = fs as any;
 
 describe("Integration functions", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   describe("getConfig", () => {
-    it("should return config with provided inputs", () => {
+    test("should return config with provided inputs", () => {
       mockedCore.getInput.mockImplementation((name: string) => {
         const inputs: Record<string, string> = {
           "account-name": "Test Account",
@@ -50,7 +55,7 @@ describe("Integration functions", () => {
       });
     });
 
-    it("should use default values when inputs are empty", () => {
+    test("should use default values when inputs are empty", () => {
       mockedCore.getInput.mockReturnValue("");
 
       const config = getConfig();
@@ -70,7 +75,7 @@ describe("Integration functions", () => {
   });
 
   describe("loadPageMappings", () => {
-    it("should load existing mappings", () => {
+    test("should load existing mappings", () => {
       const mockMappings = [
         {
           filePath: "README.md",
@@ -88,7 +93,7 @@ describe("Integration functions", () => {
       expect(result).toEqual(mockMappings);
     });
 
-    it("should return empty array when file does not exist", () => {
+    test("should return empty array when file does not exist", () => {
       mockedFs.existsSync.mockReturnValue(false);
 
       const result = loadPageMappings("nonexistent.json");
@@ -98,7 +103,7 @@ describe("Integration functions", () => {
   });
 
   describe("savePageMappings", () => {
-    it("should save mappings to file", () => {
+    test("should save mappings to file", () => {
       const mappings = [
         {
           filePath: "README.md",
@@ -117,7 +122,7 @@ describe("Integration functions", () => {
       );
     });
 
-    it("should enable one entry mode when input is true", () => {
+    test("should enable one entry mode when input is true", () => {
       mockedCore.getInput.mockImplementation((name: string) => {
         const inputs: Record<string, string> = {
           "one-entry-mode": "true",
@@ -130,7 +135,7 @@ describe("Integration functions", () => {
       expect(config.oneEntryMode).toBe(true);
     });
 
-    it("should disable one entry mode when input is false or empty", () => {
+    test("should disable one entry mode when input is false or empty", () => {
       mockedCore.getInput.mockImplementation((name: string) => {
         const inputs: Record<string, string> = {
           "one-entry-mode": "false",
@@ -143,7 +148,7 @@ describe("Integration functions", () => {
       expect(config.oneEntryMode).toBe(false);
     });
 
-    it("should enable replace existing pages when input is true", () => {
+    test("should enable replace existing pages when input is true", () => {
       mockedCore.getInput.mockImplementation((name: string) => {
         const inputs: Record<string, string> = {
           "replace-existing-pages": "true",
@@ -156,7 +161,7 @@ describe("Integration functions", () => {
       expect(config.replaceExistingPages).toBe(true);
     });
 
-    it("should disable replace existing pages when input is false or empty", () => {
+    test("should disable replace existing pages when input is false or empty", () => {
       mockedCore.getInput.mockImplementation((name: string) => {
         const inputs: Record<string, string> = {
           "replace-existing-pages": "false",

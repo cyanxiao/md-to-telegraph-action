@@ -1,7 +1,7 @@
 import { marked } from "marked";
 import { Node } from "./telegraph";
 import * as core from "@actions/core";
-import { JSDOM } from "jsdom";
+import { DOMParser } from "linkedom";
 import * as path from "path";
 
 export class MarkdownConverter {
@@ -32,9 +32,13 @@ export class MarkdownConverter {
     // Remove frontmatter if present
     const cleanedHtml = this.removeFrontmatter(html);
 
-    // Parse HTML and convert to Telegraph nodes using JSDOM
-    const dom = new JSDOM(`<div>${cleanedHtml}</div>`);
-    const container = dom.window.document.querySelector("div");
+    // Parse HTML and convert to Telegraph nodes using linkedom
+    const parser = new DOMParser();
+    const document = parser.parseFromString(
+      `<div>${cleanedHtml}</div>`,
+      "text/html"
+    );
+    const container = document.querySelector("div");
 
     if (container) {
       for (const child of Array.from(container.childNodes)) {

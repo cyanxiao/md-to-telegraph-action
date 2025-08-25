@@ -11,39 +11,38 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20]
+        bun-version: [latest]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+          bun-version: latest
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Lint code
-        run: yarn lint
+        run: bun run lint
 
       - name: Build project
-        run: yarn build
+        run: bun run build
 
       - name: Run tests
-        run: yarn test
+        run: bun run test
 
       - name: Package action
-        run: yarn package
+        run: bun run package
 
       - name: Check dist is up to date
         run: |
           if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
             echo "Detected uncommitted changes after build. See status below:"
             git diff --exit-code dist/
-            echo "Run 'yarn package' and commit the changes."
+            echo "Run 'bun run package' and commit the changes."
             exit 1
           fi
 

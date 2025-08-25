@@ -1,9 +1,20 @@
+import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { MarkdownConverter } from "../markdown-converter";
 
-jest.mock("@actions/core", () => ({
-  info: jest.fn(),
-  warning: jest.fn(),
-  error: jest.fn(),
+// Mock the marked function with setOptions method
+const mockMarked = mock(() => "") as any;
+mockMarked.setOptions = mock(() => {});
+
+mock.module("marked", () => ({
+  marked: mockMarked,
+}));
+
+const mockWarning = mock(() => {});
+
+mock.module("@actions/core", () => ({
+  info: mock(() => {}),
+  warning: mockWarning,
+  error: mock(() => {}),
 }));
 
 describe("Internal Link Resolution", () => {
@@ -11,11 +22,11 @@ describe("Internal Link Resolution", () => {
 
   beforeEach(() => {
     converter = new MarkdownConverter();
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   describe("convertToTelegraphNodesSimple with link resolution", () => {
-    it("should resolve relative markdown links", () => {
+    test("should resolve relative markdown links", () => {
       const markdown = "Check out the [guide](./docs/guide.md) for more info.";
       const basePath = "README.md";
       const linkResolver = (path: string): string => {
@@ -42,7 +53,7 @@ describe("Internal Link Resolution", () => {
       });
     });
 
-    it("should resolve parent directory markdown links", () => {
+    test("should resolve parent directory markdown links", () => {
       const markdown = "See the [README](../README.md) file.";
       const basePath = "docs/guide.md";
       const linkResolver = (path: string): string => {
@@ -69,7 +80,7 @@ describe("Internal Link Resolution", () => {
       expect(children).toContain(" file.");
     });
 
-    it("should leave external URLs unchanged", () => {
+    test("should leave external URLs unchanged", () => {
       const markdown = "Visit [Google](https://google.com) for search.";
       const basePath = "README.md";
       const linkResolver = () => "should-not-be-called";
@@ -90,7 +101,7 @@ describe("Internal Link Resolution", () => {
       });
     });
 
-    it("should leave anchor links unchanged", () => {
+    test("should leave anchor links unchanged", () => {
       const markdown = "Jump to [section](#header).";
       const basePath = "README.md";
       const linkResolver = () => "should-not-be-called";
@@ -112,7 +123,7 @@ describe("Internal Link Resolution", () => {
       expect(children).toContain(".");
     });
 
-    it("should handle mailto and tel links", () => {
+    test("should handle mailto and tel links", () => {
       const markdown =
         "Contact [email](mailto:test@example.com) or [phone](tel:123-456-7890).";
       const basePath = "README.md";
@@ -140,7 +151,7 @@ describe("Internal Link Resolution", () => {
       });
     });
 
-    it("should handle absolute path markdown links", () => {
+    test("should handle absolute path markdown links", () => {
       const markdown = "Check the [config](/config/settings.md).";
       const basePath = "docs/guide.md";
       const linkResolver = (path: string): string => {
@@ -166,7 +177,7 @@ describe("Internal Link Resolution", () => {
       });
     });
 
-    it("should handle complex relative paths", () => {
+    test("should handle complex relative paths", () => {
       const markdown = "See [API docs](../../api/reference.md).";
       const basePath = "docs/guides/tutorial.md";
       const linkResolver = (path: string): string => {
@@ -192,7 +203,7 @@ describe("Internal Link Resolution", () => {
       });
     });
 
-    it("should handle mixed link types in same content", () => {
+    test("should handle mixed link types in same content", () => {
       const markdown =
         "Check [guide](./guide.md), visit [Google](https://google.com), go to [section](#top), and see [config](/config.md).";
       const basePath = "README.md";
@@ -239,9 +250,9 @@ describe("Internal Link Resolution", () => {
       expect(children).toContain(".");
     });
 
-    it("should warn for unresolvable internal links", () => {
-      const mockWarning = jest.fn();
-      (require("@actions/core").warning as jest.Mock) = mockWarning;
+    test("should warn for unresolvable internal links", () => {
+      // Reset the mock before the test
+      mockWarning.mockClear();
 
       const markdown = "See [missing](./missing.md).";
       const basePath = "README.md";
@@ -261,7 +272,7 @@ describe("Internal Link Resolution", () => {
       );
     });
 
-    it("should work without link resolver for backwards compatibility", () => {
+    test("should work without link resolver for backwards compatibility", () => {
       const markdown =
         "Check [guide](./guide.md) and [Google](https://google.com).";
 
@@ -286,7 +297,7 @@ describe("Internal Link Resolution", () => {
   });
 
   describe("Link path resolution", () => {
-    it("should normalize Windows-style paths", () => {
+    test("should normalize Windows-style paths", () => {
       const markdown = "Check [guide](docs\\guide.md).";
       const basePath = "README.md";
       const linkResolver = (path: string): string => {
@@ -297,7 +308,7 @@ describe("Internal Link Resolution", () => {
       converter.convertToTelegraphNodesSimple(markdown, basePath, linkResolver);
     });
 
-    it("should handle paths with query parameters and anchors", () => {
+    test("should handle paths with query parameters and anchors", () => {
       const markdown = "Check [guide](./guide.md#section?param=value).";
       const basePath = "README.md";
       const linkResolver = () => "https://telegra.ph/Guide-WithParams";
