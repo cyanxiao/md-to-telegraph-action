@@ -1,6 +1,7 @@
 import { MarkdownConverter } from "../markdown-converter";
 import { marked } from "marked";
 import { JSDOM } from "jsdom";
+import { Node } from "../telegraph";
 
 jest.mock("marked");
 jest.mock("jsdom");
@@ -315,7 +316,9 @@ describe("MarkdownConverter", () => {
 
       const result = (converter as any).processInlineMarkdown(text);
 
-      expect(result).toBe('<strong><a href="https://example.com">something</a></strong>');
+      expect(result).toBe(
+        '<strong><a href="https://example.com">something</a></strong>'
+      );
     });
   });
 
@@ -375,23 +378,25 @@ describe("MarkdownConverter", () => {
     it("should handle links inside bold formatting in nodes", () => {
       const converter = new MarkdownConverter();
       const markdown = "**[something](https://example.com)**";
-      
+
       const result = converter.convertToTelegraphNodesSimple(markdown);
-      
+
       // Should have one paragraph node
       expect(result).toHaveLength(1);
       expect(result[0].tag).toBe("p");
-      
+
       // The paragraph should contain a strong node with a link inside
       const children = result[0].children as Array<Node | string>;
       expect(children).toHaveLength(1);
       expect(children[0]).toEqual({
         tag: "strong",
-        children: [{
-          tag: "a",
-          attrs: { href: "https://example.com" },
-          children: ["something"]
-        }]
+        children: [
+          {
+            tag: "a",
+            attrs: { href: "https://example.com" },
+            children: ["something"],
+          },
+        ],
       });
     });
   });
