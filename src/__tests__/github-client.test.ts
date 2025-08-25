@@ -1,9 +1,10 @@
+import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
 import { GitHubClient } from "../github-client";
 import * as github from "@actions/github";
 import * as core from "@actions/core";
 
-jest.mock("@actions/github", () => ({
-  getOctokit: jest.fn(),
+mock.module("@actions/github", () => ({
+  getOctokit: mock(() => {}),
   context: {
     repo: {
       owner: "test-owner",
@@ -12,20 +13,20 @@ jest.mock("@actions/github", () => ({
   },
 }));
 
-jest.mock("@actions/core", () => ({
-  info: jest.fn(),
-  warning: jest.fn(),
-  error: jest.fn(),
-  setFailed: jest.fn(),
-  getInput: jest.fn(),
-  setOutput: jest.fn(),
+mock.module("@actions/core", () => ({
+  info: mock(() => {}),
+  warning: mock(() => {}),
+  error: mock(() => {}),
+  setFailed: mock(() => {}),
+  getInput: mock(() => {}),
+  setOutput: mock(() => {}),
 }));
 
 const mockOctokit = {
   rest: {
     repos: {
-      get: jest.fn(),
-      update: jest.fn(),
+      get: mock(() => {}),
+      update: mock(() => {}),
     },
   },
 };
@@ -35,9 +36,9 @@ describe("GitHubClient", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    mock.restore();
     process.env = { ...originalEnv, GITHUB_TOKEN: "test-token" };
-    (github.getOctokit as jest.Mock).mockReturnValue(mockOctokit);
+    (github.getOctokit as any).mockReturnValue(mockOctokit);
   });
 
   afterEach(() => {
@@ -45,22 +46,22 @@ describe("GitHubClient", () => {
   });
 
   describe("constructor", () => {
-    it("should initialize with GITHUB_TOKEN from environment", () => {
+    test("should initialize with GITHUB_TOKEN from environment", () => {
       client = new GitHubClient();
       expect(github.getOctokit).toHaveBeenCalledWith("test-token");
     });
 
-    it("should initialize with github-token from input if GITHUB_TOKEN not available", () => {
+    test("should initialize with github-token from input if GITHUB_TOKEN not available", () => {
       delete process.env.GITHUB_TOKEN;
-      (core.getInput as jest.Mock).mockReturnValue("input-token");
+      (core.getInput as any).mockReturnValue("input-token");
 
       client = new GitHubClient();
       expect(github.getOctokit).toHaveBeenCalledWith("input-token");
     });
 
-    it("should throw error when no token is available", () => {
+    test("should throw error when no token is available", () => {
       delete process.env.GITHUB_TOKEN;
-      (core.getInput as jest.Mock).mockReturnValue("");
+      (core.getInput as any).mockReturnValue("");
 
       expect(() => new GitHubClient()).toThrow("GitHub token is required");
     });
@@ -71,7 +72,7 @@ describe("GitHubClient", () => {
       client = new GitHubClient();
     });
 
-    it("should return current repository info from context", () => {
+    test("should return current repository info from context", () => {
       const result = client.getCurrentRepository();
 
       expect(result).toEqual({
@@ -86,7 +87,7 @@ describe("GitHubClient", () => {
       client = new GitHubClient();
     });
 
-    it("should get repository details successfully", async () => {
+    test("should get repository details successfully", async () => {
       const mockRepoData = {
         data: {
           description: "Test repository description",
@@ -111,7 +112,7 @@ describe("GitHubClient", () => {
       });
     });
 
-    it("should handle repository with no description", async () => {
+    test("should handle repository with no description", async () => {
       const mockRepoData = {
         data: {
           description: null,
@@ -131,7 +132,7 @@ describe("GitHubClient", () => {
       });
     });
 
-    it("should handle API errors", async () => {
+    test("should handle API errors", async () => {
       const error = new Error("Repository not found");
       mockOctokit.rest.repos.get.mockRejectedValue(error);
 
@@ -149,7 +150,7 @@ describe("GitHubClient", () => {
       client = new GitHubClient();
     });
 
-    it("should update repository description successfully", async () => {
+    test("should update repository description successfully", async () => {
       const description = "https://telegra.ph/My-Page-123";
 
       mockOctokit.rest.repos.update.mockResolvedValue({});
@@ -170,7 +171,7 @@ describe("GitHubClient", () => {
       );
     });
 
-    it("should handle update errors", async () => {
+    test("should handle update errors", async () => {
       const description = "https://telegra.ph/My-Page-123";
       const error = new Error("Insufficient permissions");
 
@@ -190,7 +191,7 @@ describe("GitHubClient", () => {
       client = new GitHubClient();
     });
 
-    it("should update repository homepage URL successfully", async () => {
+    test("should update repository homepage URL successfully", async () => {
       const homepageUrl = "https://telegra.ph/My-Page-123";
 
       mockOctokit.rest.repos.update.mockResolvedValue({});
@@ -211,7 +212,7 @@ describe("GitHubClient", () => {
       );
     });
 
-    it("should handle update errors", async () => {
+    test("should handle update errors", async () => {
       const homepageUrl = "https://telegra.ph/My-Page-123";
       const error = new Error("Insufficient permissions");
 
@@ -231,7 +232,7 @@ describe("GitHubClient", () => {
       client = new GitHubClient();
     });
 
-    it("should return true when permissions are sufficient", async () => {
+    test("should return true when permissions are sufficient", async () => {
       mockOctokit.rest.repos.get.mockResolvedValue({});
 
       const result = await client.checkPermissions();
@@ -243,7 +244,7 @@ describe("GitHubClient", () => {
       });
     });
 
-    it("should return false when permissions are insufficient", async () => {
+    test("should return false when permissions are insufficient", async () => {
       const error = new Error("Forbidden");
       mockOctokit.rest.repos.get.mockRejectedValue(error);
 

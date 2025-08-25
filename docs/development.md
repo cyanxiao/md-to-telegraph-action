@@ -6,26 +6,26 @@ This guide covers setting up the development environment, building, testing, and
 
 ```bash
 # Install dependencies
-yarn install
+bun install
 
 # Build the action
-yarn build
+bun run build
 
 # Package for distribution
-yarn package
+bun run package
 ```
 
 ## Testing
 
 ```bash
 # Run tests
-yarn test
+bun run test
 
 # Lint code
-yarn lint
+bun run lint
 
 # Format code
-yarn format
+bun run format
 ```
 
 ## Release Process
@@ -48,23 +48,18 @@ This project follows semantic versioning and uses automated release workflows.
    git pull origin main
 
    # Run tests and build
-   yarn test
-   yarn prepare-release
+   bun run test
+   bun run prepare-release
 
-   # Update version and create tag
-   npm version v1.2.0 --no-git-tag-version
-   git add package.json dist/
-   git commit -m "chore: bump version to v1.2.0"
-   git tag -a v1.2.0 -m "Release v1.2.0"
-   git push origin main
-   git push origin v1.2.0
+   # Update version and create tag (use the release script instead)
+   ./scripts/release.sh v1.2.0
    ```
 
 ### Release Workflow
 
 The automated release process:
 
-1. **CI/CD Pipeline**: All PRs are automatically tested with Node.js 20
+1. **CI/CD Pipeline**: All PRs are automatically tested with Bun
 2. **Release Trigger**: Push a version tag (e.g., `v1.2.0`) to trigger the release
 3. **Automated Tasks**:
    - Runs full test suite
@@ -102,7 +97,7 @@ We welcome contributions to improve the action! Please follow these guidelines:
 
 - Use TypeScript for all new code
 - Follow the existing formatting conventions
-- Run `yarn lint` and `yarn format` before committing
+- Run `bun run lint` and `bun run format` before committing
 - Write tests for new functionality
 - Update documentation for user-facing changes
 

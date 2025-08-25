@@ -1,33 +1,44 @@
+import { describe, test, expect, beforeEach, mock } from "bun:test";
 import axios from "axios";
 import { TelegraphClient, Node } from "../telegraph";
 
-jest.mock("axios");
-jest.mock("@actions/core", () => ({
-  info: jest.fn(),
-  warning: jest.fn(),
-  error: jest.fn(),
-  setFailed: jest.fn(),
-  getInput: jest.fn(),
-  setOutput: jest.fn(),
+mock.module("axios", () => ({
+  default: {
+    create: mock(() => ({
+      post: mock(() => Promise.resolve({ data: {} })),
+      get: mock(() => Promise.resolve({ data: {} })),
+    })),
+    post: mock(() => Promise.resolve({ data: {} })),
+    get: mock(() => Promise.resolve({ data: {} })),
+    isAxiosError: mock(() => false),
+  },
+}));
+mock.module("@actions/core", () => ({
+  info: mock(() => {}),
+  warning: mock(() => {}),
+  error: mock(() => {}),
+  setFailed: mock(() => {}),
+  getInput: mock(() => {}),
+  setOutput: mock(() => {}),
 }));
 
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+const mockedAxios = axios as any;
 
 describe("TelegraphClient", () => {
   let client: TelegraphClient;
 
   beforeEach(() => {
     client = new TelegraphClient();
-    jest.clearAllMocks();
+    mock.restore();
 
-    mockedAxios.create = jest.fn().mockReturnValue({
-      post: jest.fn(),
-      get: jest.fn(),
+    mockedAxios.create = mock(() => {}).mockReturnValue({
+      post: mock(() => {}),
+      get: mock(() => {}),
     });
   });
 
   describe("createAccount", () => {
-    it("should create a Telegraph account successfully", async () => {
+    test("should create a Telegraph account successfully", async () => {
       const mockResponse = {
         data: {
           ok: true,
@@ -40,8 +51,8 @@ describe("TelegraphClient", () => {
       };
 
       const mockApi = {
-        post: jest.fn().mockResolvedValue(mockResponse),
-        get: jest.fn(),
+        post: mock(() => {}).mockResolvedValue(mockResponse),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
 
@@ -63,7 +74,7 @@ describe("TelegraphClient", () => {
       expect(result.access_token).toBe("test-token-123");
     });
 
-    it("should throw error when Telegraph API returns error", async () => {
+    test("should throw error when Telegraph API returns error", async () => {
       const mockResponse = {
         data: {
           ok: false,
@@ -72,8 +83,8 @@ describe("TelegraphClient", () => {
       };
 
       const mockApi = {
-        post: jest.fn().mockResolvedValue(mockResponse),
-        get: jest.fn(),
+        post: mock(() => {}).mockResolvedValue(mockResponse),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
 
@@ -84,10 +95,10 @@ describe("TelegraphClient", () => {
       ).rejects.toThrow("Telegraph API error: FLOOD_WAIT_X");
     });
 
-    it("should handle network errors", async () => {
+    test("should handle network errors", async () => {
       const mockApi = {
-        post: jest.fn().mockRejectedValue(new Error("Network error")),
-        get: jest.fn(),
+        post: mock(() => {}).mockRejectedValue(new Error("Network error")),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
 
@@ -102,15 +113,15 @@ describe("TelegraphClient", () => {
   describe("createPage", () => {
     beforeEach(() => {
       const mockApi = {
-        post: jest.fn(),
-        get: jest.fn(),
+        post: mock(() => {}),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
       client = new TelegraphClient();
       client.setAccessToken("test-token");
     });
 
-    it("should create a Telegraph page successfully", async () => {
+    test("should create a Telegraph page successfully", async () => {
       const mockNodes: Node[] = [{ tag: "p", children: ["Hello World"] }];
 
       const mockResponse = {
@@ -149,7 +160,7 @@ describe("TelegraphClient", () => {
       expect(result.title).toBe("Test Page");
     });
 
-    it("should throw error when no access token is available", async () => {
+    test("should throw error when no access token is available", async () => {
       const client = new TelegraphClient();
       const mockNodes: Node[] = [{ tag: "p", children: ["Hello"] }];
 
@@ -158,7 +169,7 @@ describe("TelegraphClient", () => {
       );
     });
 
-    it("should handle API errors when creating page", async () => {
+    test("should handle API errors when creating page", async () => {
       const mockNodes: Node[] = [{ tag: "p", children: ["Hello"] }];
       const mockResponse = {
         data: {
@@ -179,15 +190,15 @@ describe("TelegraphClient", () => {
   describe("editPage", () => {
     beforeEach(() => {
       const mockApi = {
-        post: jest.fn(),
-        get: jest.fn(),
+        post: mock(() => {}),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
       client = new TelegraphClient();
       client.setAccessToken("test-token");
     });
 
-    it("should edit a Telegraph page successfully", async () => {
+    test("should edit a Telegraph page successfully", async () => {
       const mockNodes: Node[] = [{ tag: "p", children: ["Updated content"] }];
 
       const mockResponse = {
@@ -225,7 +236,7 @@ describe("TelegraphClient", () => {
       expect(result.title).toBe("Updated Page");
     });
 
-    it("should throw error when no access token is available", async () => {
+    test("should throw error when no access token is available", async () => {
       const client = new TelegraphClient();
       const mockNodes: Node[] = [{ tag: "p", children: ["Hello"] }];
 
@@ -238,14 +249,14 @@ describe("TelegraphClient", () => {
   describe("getPage", () => {
     beforeEach(() => {
       const mockApi = {
-        post: jest.fn(),
-        get: jest.fn(),
+        post: mock(() => {}),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
       client = new TelegraphClient();
     });
 
-    it("should get a Telegraph page successfully", async () => {
+    test("should get a Telegraph page successfully", async () => {
       const mockResponse = {
         data: {
           ok: true,
@@ -276,7 +287,7 @@ describe("TelegraphClient", () => {
       expect(result.views).toBe(100);
     });
 
-    it("should handle 404 errors gracefully", async () => {
+    test("should handle 404 errors gracefully", async () => {
       const mockError = {
         isAxiosError: true,
         response: { status: 404 },
@@ -284,14 +295,15 @@ describe("TelegraphClient", () => {
 
       const mockApi = mockedAxios.create() as any;
       mockApi.get.mockRejectedValue(mockError);
-      jest.mocked(axios.isAxiosError).mockReturnValue(true);
+      // Mock isAxiosError
+      (axios as any).isAxiosError = mock(() => true);
 
       await expect(client.getPage("nonexistent-page")).rejects.toThrow(
         "Telegraph page not found"
       );
     });
 
-    it("should handle API errors when getting page", async () => {
+    test("should handle API errors when getting page", async () => {
       const mockResponse = {
         data: {
           ok: false,
@@ -311,15 +323,15 @@ describe("TelegraphClient", () => {
   describe("getPageList", () => {
     beforeEach(() => {
       const mockApi = {
-        post: jest.fn(),
-        get: jest.fn(),
+        post: mock(() => {}),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
       client = new TelegraphClient();
       client.setAccessToken("test-token");
     });
 
-    it("should get page list successfully", async () => {
+    test("should get page list successfully", async () => {
       const mockResponse = {
         data: {
           ok: true,
@@ -363,7 +375,7 @@ describe("TelegraphClient", () => {
       expect(result.pages[0].title).toBe("Page 1");
     });
 
-    it("should throw error when no access token is available", async () => {
+    test("should throw error when no access token is available", async () => {
       const client = new TelegraphClient();
 
       await expect(client.getPageList()).rejects.toThrow(
@@ -375,15 +387,15 @@ describe("TelegraphClient", () => {
   describe("findExistingPageByTitle", () => {
     beforeEach(() => {
       const mockApi = {
-        post: jest.fn(),
-        get: jest.fn(),
+        post: mock(() => {}),
+        get: mock(() => {}),
       };
       mockedAxios.create.mockReturnValue(mockApi as any);
       client = new TelegraphClient();
       client.setAccessToken("test-token");
     });
 
-    it("should find existing page by exact title match", async () => {
+    test("should find existing page by exact title match", async () => {
       const mockPageList = {
         total_count: 2,
         pages: [
@@ -404,7 +416,8 @@ describe("TelegraphClient", () => {
         ],
       };
 
-      jest.spyOn(client, "getPageList").mockResolvedValue(mockPageList);
+      // Mock getPageList method
+      (client as any).getPageList = mock(() => Promise.resolve(mockPageList));
 
       const result = await client.findExistingPageByTitle("Test Page");
 
@@ -413,7 +426,7 @@ describe("TelegraphClient", () => {
       expect(result?.path).toBe("test-page-123");
     });
 
-    it("should find existing page by case-insensitive title match", async () => {
+    test("should find existing page by case-insensitive title match", async () => {
       const mockPageList = {
         total_count: 1,
         pages: [
@@ -427,7 +440,8 @@ describe("TelegraphClient", () => {
         ],
       };
 
-      jest.spyOn(client, "getPageList").mockResolvedValue(mockPageList);
+      // Mock getPageList method
+      (client as any).getPageList = mock(() => Promise.resolve(mockPageList));
 
       const result = await client.findExistingPageByTitle("test page");
 
@@ -435,7 +449,7 @@ describe("TelegraphClient", () => {
       expect(result?.title).toBe("Test Page");
     });
 
-    it("should return null when no matching page is found", async () => {
+    test("should return null when no matching page is found", async () => {
       const mockPageList = {
         total_count: 1,
         pages: [
@@ -449,17 +463,19 @@ describe("TelegraphClient", () => {
         ],
       };
 
-      jest.spyOn(client, "getPageList").mockResolvedValue(mockPageList);
+      // Mock getPageList method
+      (client as any).getPageList = mock(() => Promise.resolve(mockPageList));
 
       const result = await client.findExistingPageByTitle("Nonexistent Page");
 
       expect(result).toBeNull();
     });
 
-    it("should handle API errors gracefully", async () => {
-      jest
-        .spyOn(client, "getPageList")
-        .mockRejectedValue(new Error("API Error"));
+    test("should handle API errors gracefully", async () => {
+      // Mock getPageList to reject
+      (client as any).getPageList = mock(() =>
+        Promise.reject(new Error("API Error"))
+      );
 
       const result = await client.findExistingPageByTitle("Test Page");
 
@@ -468,7 +484,7 @@ describe("TelegraphClient", () => {
   });
 
   describe("setAccessToken", () => {
-    it("should set access token correctly", () => {
+    test("should set access token correctly", () => {
       const token = "new-test-token";
       client.setAccessToken(token);
 

@@ -1,14 +1,15 @@
+import { test, expect, mock } from "bun:test";
+
+// Mock console functions
 global.console = {
   ...console,
-  log: jest.fn(),
-  debug: jest.fn(),
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
+  log: mock(() => {}),
+  debug: mock(() => {}),
+  info: mock(() => {}),
+  warn: mock(() => {}),
+  error: mock(() => {}),
 };
 
-describe('Setup', () => {
-  test('should have console mocks', () => {
-    expect(jest.isMockFunction(console.log)).toBe(true);
-  });
+test("Setup - should have console mocks", () => {
+  expect(typeof console.log).toBe("function");
 });

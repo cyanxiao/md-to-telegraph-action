@@ -1,30 +1,39 @@
+import { describe, test, expect, beforeEach, mock } from "bun:test";
 import { MarkdownConverter } from "../markdown-converter";
 import { marked } from "marked";
 import { JSDOM } from "jsdom";
 
-jest.mock("marked");
-jest.mock("jsdom");
-jest.mock("@actions/core", () => ({
-  info: jest.fn(),
-  warning: jest.fn(),
-  error: jest.fn(),
-  setFailed: jest.fn(),
-  getInput: jest.fn(),
-  setOutput: jest.fn(),
+// Mock the marked function with setOptions method
+const mockMarked = mock(() => "") as any;
+mockMarked.setOptions = mock(() => {});
+
+mock.module("marked", () => ({
+  marked: mockMarked,
+}));
+mock.module("jsdom", () => ({
+  JSDOM: mock(() => ({})),
+}));
+mock.module("@actions/core", () => ({
+  info: mock(() => {}),
+  warning: mock(() => {}),
+  error: mock(() => {}),
+  setFailed: mock(() => {}),
+  getInput: mock(() => {}),
+  setOutput: mock(() => {}),
 }));
 
-const mockedMarked = marked as jest.MockedFunction<typeof marked>;
+const mockedMarked = marked as any;
 
 describe("MarkdownConverter", () => {
   let converter: MarkdownConverter;
 
   beforeEach(() => {
     converter = new MarkdownConverter();
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   describe("constructor", () => {
-    it("should initialize marked with correct options", () => {
+    test("should initialize marked with correct options", () => {
       new MarkdownConverter();
       expect(marked.setOptions).toHaveBeenCalledWith({
         breaks: true,
@@ -34,7 +43,7 @@ describe("MarkdownConverter", () => {
   });
 
   describe("convertToTelegraphNodes", () => {
-    it("should convert markdown to Telegraph nodes", () => {
+    test("should convert markdown to Telegraph nodes", () => {
       const markdown = "# Hello World\n\nThis is **bold** text.";
       const mockHtml =
         "<h1>Hello World</h1><p>This is <strong>bold</strong> text.</p>";
@@ -42,7 +51,7 @@ describe("MarkdownConverter", () => {
       mockedMarked.mockReturnValue(mockHtml);
 
       const mockDocument = {
-        querySelector: jest.fn().mockReturnValue({
+        querySelector: mock(() => {}).mockReturnValue({
           childNodes: [
             {
               nodeType: 1,
@@ -66,7 +75,7 @@ describe("MarkdownConverter", () => {
         }),
       };
 
-      (JSDOM as jest.MockedClass<typeof JSDOM>).mockImplementation(
+      (JSDOM as any).mockImplementation(
         () => ({ window: { document: mockDocument } }) as any
       );
 
@@ -78,7 +87,7 @@ describe("MarkdownConverter", () => {
       expect(result[1].tag).toBe("p");
     });
 
-    it("should handle conversion errors", () => {
+    test("should handle conversion errors", () => {
       const markdown = "# Test";
       mockedMarked.mockImplementation(() => {
         throw new Error("Conversion error");
@@ -91,7 +100,7 @@ describe("MarkdownConverter", () => {
   });
 
   describe("convertToTelegraphNodesSimple", () => {
-    it("should convert simple markdown headers", () => {
+    test("should convert simple markdown headers", () => {
       const markdown = "# H1 Title\n## H2 Title\n### H3 Title";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -101,7 +110,7 @@ describe("MarkdownConverter", () => {
       expect(result[1]).toEqual({ tag: "h4", children: ["H3 Title"] });
     });
 
-    it("should convert code blocks", () => {
+    test("should convert code blocks", () => {
       const markdown = '```javascript\nconsole.log("hello");\n```';
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -113,7 +122,7 @@ describe("MarkdownConverter", () => {
       });
     });
 
-    it("should convert blockquotes", () => {
+    test("should convert blockquotes", () => {
       const markdown = "> This is a quote\n> Second line";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -129,7 +138,7 @@ describe("MarkdownConverter", () => {
       });
     });
 
-    it("should convert regular paragraphs with inline formatting", () => {
+    test("should convert regular paragraphs with inline formatting", () => {
       const markdown = "This is **bold** and *italic* text with `code`.";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -146,7 +155,7 @@ describe("MarkdownConverter", () => {
       expect(children).toContain(".");
     });
 
-    it("should convert underscore italic formatting", () => {
+    test("should convert underscore italic formatting", () => {
       const markdown = "This text has _underscored italic_ formatting.";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -162,7 +171,7 @@ describe("MarkdownConverter", () => {
       expect(children).toContain(" formatting.");
     });
 
-    it("should convert links", () => {
+    test("should convert links", () => {
       const markdown = "Check out [Google](https://google.com) for search.";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -179,7 +188,7 @@ describe("MarkdownConverter", () => {
       expect(children).toContain(" for search.");
     });
 
-    it("should skip empty lines", () => {
+    test("should skip empty lines", () => {
       const markdown = "# Title\n\n\n\nContent here\n\n";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -188,7 +197,7 @@ describe("MarkdownConverter", () => {
       expect(result[0]).toEqual({ tag: "p", children: ["Content here"] });
     });
 
-    it("should handle frontmatter removal", () => {
+    test("should handle frontmatter removal", () => {
       const markdown = "---\ntitle: Test\n---\n\n# Real Content";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -196,7 +205,7 @@ describe("MarkdownConverter", () => {
       expect(result).toHaveLength(0); // H1 is skipped to avoid title duplication
     });
 
-    it("should handle empty markdown", () => {
+    test("should handle empty markdown", () => {
       const markdown = "";
 
       const result = converter.convertToTelegraphNodesSimple(markdown);
@@ -204,7 +213,7 @@ describe("MarkdownConverter", () => {
       expect(result).toHaveLength(0);
     });
 
-    it("should handle multiline code blocks correctly", () => {
+    test("should handle multiline code blocks correctly", () => {
       const markdown =
         '```python\ndef hello():\n    print("world")\n    return True\n```';
 
@@ -219,7 +228,7 @@ describe("MarkdownConverter", () => {
   });
 
   describe("processInlineMarkdown", () => {
-    it("should process bold text", () => {
+    test("should process bold text", () => {
       const text = "This is **bold** text";
 
       const result = (converter as any).processInlineMarkdown(text);
@@ -227,7 +236,7 @@ describe("MarkdownConverter", () => {
       expect(result).toBe("This is <strong>bold</strong> text");
     });
 
-    it("should process italic text with asterisks", () => {
+    test("should process italic text with asterisks", () => {
       const text = "This is *italic* text";
 
       const result = (converter as any).processInlineMarkdown(text);
@@ -235,7 +244,7 @@ describe("MarkdownConverter", () => {
       expect(result).toBe("This is <em>italic</em> text");
     });
 
-    it("should process italic text with underscores", () => {
+    test("should process italic text with underscores", () => {
       const text = "This is _italic_ text";
 
       const result = (converter as any).processInlineMarkdown(text);
@@ -243,7 +252,7 @@ describe("MarkdownConverter", () => {
       expect(result).toBe("This is <em>italic</em> text");
     });
 
-    it("should process inline code", () => {
+    test("should process inline code", () => {
       const text = "Use `console.log()` to debug";
 
       const result = (converter as any).processInlineMarkdown(text);
@@ -251,7 +260,7 @@ describe("MarkdownConverter", () => {
       expect(result).toBe("Use <code>console.log()</code> to debug");
     });
 
-    it("should process links", () => {
+    test("should process links", () => {
       const text = "Visit [Google](https://google.com) website";
 
       const result = (converter as any).processInlineMarkdown(text);
@@ -261,7 +270,7 @@ describe("MarkdownConverter", () => {
       );
     });
 
-    it("should process multiple formatting types", () => {
+    test("should process multiple formatting types", () => {
       const text =
         "**Bold** and *italic* with `code` and [link](https://example.com)";
 
@@ -272,7 +281,7 @@ describe("MarkdownConverter", () => {
       );
     });
 
-    it("should process both asterisk and underscore italics", () => {
+    test("should process both asterisk and underscore italics", () => {
       const text = "Both *asterisk italic* and _underscore italic_ work";
 
       const result = (converter as any).processInlineMarkdown(text);
@@ -282,7 +291,7 @@ describe("MarkdownConverter", () => {
       );
     });
 
-    it("should process internal markdown links with resolver", () => {
+    test("should process internal markdown links with resolver", () => {
       const text = "Check [guide](./guide.md) for details.";
       const basePath = "README.md";
       const linkResolver = (path: string) => {
@@ -301,7 +310,7 @@ describe("MarkdownConverter", () => {
       );
     });
 
-    it("should handle nested formatting", () => {
+    test("should handle nested formatting", () => {
       const text = "**Bold with *nested italic* text**";
 
       const result = (converter as any).processInlineMarkdown(text);
@@ -312,7 +321,7 @@ describe("MarkdownConverter", () => {
   });
 
   describe("removeFrontmatter", () => {
-    it("should remove frontmatter", () => {
+    test("should remove frontmatter", () => {
       const content = "---\ntitle: Test\nauthor: John\n---\n\n# Content";
 
       const result = (converter as any).removeFrontmatter(content);
@@ -320,7 +329,7 @@ describe("MarkdownConverter", () => {
       expect(result).toBe("# Content");
     });
 
-    it("should return content unchanged if no frontmatter", () => {
+    test("should return content unchanged if no frontmatter", () => {
       const content = "# Just content here";
 
       const result = (converter as any).removeFrontmatter(content);
@@ -328,7 +337,7 @@ describe("MarkdownConverter", () => {
       expect(result).toBe(content);
     });
 
-    it("should handle incomplete frontmatter", () => {
+    test("should handle incomplete frontmatter", () => {
       const content = "---\ntitle: Test\n# Content without closing dashes";
 
       const result = (converter as any).removeFrontmatter(content);
@@ -338,7 +347,7 @@ describe("MarkdownConverter", () => {
   });
 
   describe("mapHtmlTagToTelegraph", () => {
-    it("should map common HTML tags correctly", () => {
+    test("should map common HTML tags correctly", () => {
       const converter = new MarkdownConverter();
 
       expect((converter as any).mapHtmlTagToTelegraph("p")).toBe("p");
@@ -354,7 +363,7 @@ describe("MarkdownConverter", () => {
       expect((converter as any).mapHtmlTagToTelegraph("a")).toBe("a");
     });
 
-    it("should return null for unsupported tags", () => {
+    test("should return null for unsupported tags", () => {
       const converter = new MarkdownConverter();
 
       expect((converter as any).mapHtmlTagToTelegraph("div")).toBeNull();

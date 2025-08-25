@@ -66,11 +66,11 @@ git pull origin main
 
 # Run tests
 print_status "Running tests..."
-yarn test
+bun run test
 
 # Build and package
 print_status "Building and packaging..."
-yarn prepare-release
+bun run prepare-release
 
 # Check if dist is up to date
 print_status "Checking if dist/ is up to date..."
@@ -82,7 +82,11 @@ fi
 
 # Update version in package.json
 print_status "Updating version in package.json..."
-npm version $VERSION --no-git-tag-version
+# Extract version number without 'v' prefix
+VERSION_NUM=${VERSION#v}
+# Use sed to update package.json version
+sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION_NUM\"/" package.json
+rm -f package.json.bak
 git add package.json
 git commit -m "chore: bump version to $VERSION"
 
