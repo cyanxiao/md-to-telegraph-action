@@ -223,8 +223,9 @@ class MarkdownConverter {
         return this.nodesToHtml(nodes);
     }
     nodesToHtml(nodes) {
-        return nodes.map(node => {
-            if (typeof node === 'string') {
+        return nodes
+            .map((node) => {
+            if (typeof node === "string") {
                 return node;
             }
             else {
@@ -234,7 +235,8 @@ class MarkdownConverter {
                 }
                 return `<${node.tag}>${children}</${node.tag}>`;
             }
-        }).join('');
+        })
+            .join("");
     }
     processInlineMarkdownToNodes(text, basePath, linkResolver) {
         return this.parseMarkdownRecursively(text, basePath, linkResolver);
@@ -246,41 +248,56 @@ class MarkdownConverter {
         // Code blocks should be processed first to avoid interference with other patterns
         const patterns = [
             { regex: /`([^`]+)`/g, tag: "code", priority: 1 },
-            { regex: /\*\*([^*]+)\*\*/g, tag: "strong", priority: 2 },
-            { regex: /\*([^*]+)\*/g, tag: "em", priority: 3 },
-            { regex: /_([^_]+)_/g, tag: "em", priority: 3 },
+            { regex: /\*\*(.*?)\*\*/g, tag: "strong", priority: 2 },
+            { regex: /\*(.*?)\*/g, tag: "em", priority: 3 },
+            { regex: /_(.*?)_/g, tag: "em", priority: 3 },
             { regex: /\[([^\]]+)\]\(([^)]+)\)/g, tag: "a", priority: 4 },
         ];
         // Find the earliest match
         let earliestMatch = null;
-        for (const pattern of patterns) {
+        // Find all matches and pick the best one by position and priority
+        const allMatches = [];
+        for (let i = 0; i < patterns.length; i++) {
+            const pattern = patterns[i];
             pattern.regex.lastIndex = 0; // Reset regex
-            const match = pattern.regex.exec(text);
-            if (match && (earliestMatch === null || match.index < earliestMatch.start)) {
+            let match;
+            while ((match = pattern.regex.exec(text)) !== null) {
                 if (pattern.tag === "a") {
                     // Special handling for links
                     const linkText = match[1];
                     const href = match[2];
                     const resolvedHref = this.resolveLink(href, basePath, linkResolver);
-                    earliestMatch = {
+                    allMatches.push({
                         start: match.index,
                         end: match.index + match[0].length,
                         text: linkText,
                         tag: pattern.tag,
                         href: resolvedHref,
                         innerContent: linkText,
-                    };
+                        priority: i,
+                    });
                 }
                 else {
-                    earliestMatch = {
+                    allMatches.push({
                         start: match.index,
                         end: match.index + match[0].length,
                         text: match[1],
                         tag: pattern.tag,
                         innerContent: match[1],
-                    };
+                        priority: i,
+                    });
                 }
             }
+        }
+        // Sort by start position, then by priority (earlier patterns win)
+        allMatches.sort((a, b) => {
+            if (a.start !== b.start)
+                return a.start - b.start;
+            return a.priority - b.priority;
+        });
+        // Find the first valid match (earliest position with highest priority)
+        if (allMatches.length > 0) {
+            earliestMatch = allMatches[0];
         }
         if (earliestMatch) {
             // Add any text before this match
