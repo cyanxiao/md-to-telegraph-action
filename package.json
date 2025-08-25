@@ -4,7 +4,7 @@
   "description": "GitHub Action to convert markdown files to Telegraph pages",
   "main": "dist/index.js",
   "scripts": {
-    "build": "bun build src/index.ts --outfile dist/index.js --target node --minify --sourcemap",
+    "build": "bun build src/index.ts --outfile dist/index.js --target node --format cjs --minify --sourcemap",
     "build:tsc": "tsc",
     "package": "bun run build",
     "test": "bun test",
