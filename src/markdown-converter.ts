@@ -34,7 +34,10 @@ export class MarkdownConverter {
 
     // Parse HTML and convert to Telegraph nodes using linkedom
     const parser = new DOMParser();
-    const document = parser.parseFromString(`<div>${cleanedHtml}</div>`, "text/html");
+    const document = parser.parseFromString(
+      `<div>${cleanedHtml}</div>`,
+      "text/html"
+    );
     const container = document.querySelector("div");
 
     if (container) {
