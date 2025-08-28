@@ -1,6 +1,7 @@
 import { MarkdownConverter } from "../markdown-converter";
 import { marked } from "marked";
 import { JSDOM } from "jsdom";
+import { Node } from "../telegraph";
 
 jest.mock("marked");
 jest.mock("jsdom");
@@ -146,6 +147,22 @@ describe("MarkdownConverter", () => {
       expect(children).toContain(".");
     });
 
+    it("should convert underscore italic formatting", () => {
+      const markdown = "This text has _underscored italic_ formatting.";
+
+      const result = converter.convertToTelegraphNodesSimple(markdown);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].tag).toBe("p");
+      const children = result[0].children as Array<any>;
+      expect(children).toContain("This text has ");
+      expect(children).toContainEqual({
+        tag: "em",
+        children: ["underscored italic"],
+      });
+      expect(children).toContain(" formatting.");
+    });
+
     it("should convert links", () => {
       const markdown = "Check out [Google](https://google.com) for search.";
 
@@ -211,8 +228,16 @@ describe("MarkdownConverter", () => {
       expect(result).toBe("This is <strong>bold</strong> text");
     });
 
-    it("should process italic text", () => {
+    it("should process italic text with asterisks", () => {
       const text = "This is *italic* text";
+
+      const result = (converter as any).processInlineMarkdown(text);
+
+      expect(result).toBe("This is <em>italic</em> text");
+    });
+
+    it("should process italic text with underscores", () => {
+      const text = "This is _italic_ text";
 
       const result = (converter as any).processInlineMarkdown(text);
 
@@ -248,6 +273,16 @@ describe("MarkdownConverter", () => {
       );
     });
 
+    it("should process both asterisk and underscore italics", () => {
+      const text = "Both *asterisk italic* and _underscore italic_ work";
+
+      const result = (converter as any).processInlineMarkdown(text);
+
+      expect(result).toBe(
+        "Both <em>asterisk italic</em> and <em>underscore italic</em> work"
+      );
+    });
+
     it("should process internal markdown links with resolver", () => {
       const text = "Check [guide](./guide.md) for details.";
       const basePath = "README.md";
@@ -274,6 +309,16 @@ describe("MarkdownConverter", () => {
 
       expect(result).toContain("<strong>");
       expect(result).toContain("<em>");
+    });
+
+    it("should handle links inside bold formatting", () => {
+      const text = "**[something](https://example.com)**";
+
+      const result = (converter as any).processInlineMarkdown(text);
+
+      expect(result).toBe(
+        '<strong><a href="https://example.com">something</a></strong>'
+      );
     });
   });
 
@@ -326,6 +371,33 @@ describe("MarkdownConverter", () => {
       expect((converter as any).mapHtmlTagToTelegraph("div")).toBeNull();
       expect((converter as any).mapHtmlTagToTelegraph("span")).toBeNull();
       expect((converter as any).mapHtmlTagToTelegraph("table")).toBeNull();
+    });
+  });
+
+  describe("convertToTelegraphNodesSimple with nested formatting", () => {
+    it("should handle links inside bold formatting in nodes", () => {
+      const converter = new MarkdownConverter();
+      const markdown = "**[something](https://example.com)**";
+
+      const result = converter.convertToTelegraphNodesSimple(markdown);
+
+      // Should have one paragraph node
+      expect(result).toHaveLength(1);
+      expect(result[0].tag).toBe("p");
+
+      // The paragraph should contain a strong node with a link inside
+      const children = result[0].children as Array<Node | string>;
+      expect(children).toHaveLength(1);
+      expect(children[0]).toEqual({
+        tag: "strong",
+        children: [
+          {
+            tag: "a",
+            attrs: { href: "https://example.com" },
+            children: ["something"],
+          },
+        ],
+      });
     });
   });
 });

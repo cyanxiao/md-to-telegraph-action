@@ -3,9 +3,6 @@ name: Convert Docs to Telegraph
 on:
   push:
     branches: [main]
-    paths:
-      - "docs/**/*.md"
-      - "README.md"
   workflow_dispatch:
 
 permissions:
@@ -17,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Cache Telegraph mappings
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: telegraph-pages.json
           key: telegraph-mappings-${{ hashFiles('docs/**/*.md', 'README.md') }}
@@ -30,8 +27,8 @@ jobs:
       - name: Convert markdown to Telegraph
         uses: cyanxiao/md-to-telegraph-action@release
         with:
-          account-name: "My Docs Site"
-          author-name: "Documentation Team"
+          account-name: "md-to-telegraph-action"
+          author-name: "Cyan Xiao"
           telegraph-token: "${{ secrets.TELEGRAPH_TOKEN }}"
           author-url: "https://github.com/${{ github.repository }}"
           include-patterns: "docs/**/*.md,README.md"
