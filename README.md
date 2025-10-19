@@ -55,3 +55,4 @@ For detailed usage instructions, configuration options, and advanced features, s
 - [Usage Guide](docs/usage-guide.md) - Complete configuration examples and input/output reference
 - [Features](docs/features.md) - Detailed documentation for One Entry Mode, Page Replacement, and Internal Link Resolution
 - [Development](docs/development.md) - Setup, testing, and contribution guidelines
+- [E2E Markdown Test](docs/e2e.md) - Comprehensive Markdown syntax test document showcasing all supported features
