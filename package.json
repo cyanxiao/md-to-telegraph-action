@@ -31,7 +31,7 @@
     "@actions/github": "^6.0.0",
     "axios": "^1.18.1",
     "glob": "^10.3.10",
-    "jsdom": "^23.0.1",
+    "jsdom": "^30.0.0",
     "marked": "^9.1.6"
   },
   "devDependencies": {
@@ -45,7 +45,7 @@
     "@vercel/ncc": "^0.44.1",
     "eslint": "^8.54.0",
     "jest": "^29.7.0",
-    "jsdom": "^23.0.1",
+    "jsdom": "^30.0.0",
     "nock": "^14.0.16",
     "prettier": "^3.9.5",
     "ts-jest": "^29.4.11",
